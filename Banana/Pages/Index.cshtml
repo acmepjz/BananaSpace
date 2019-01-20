@@ -1,0 +1,21 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "首页";
+}
+
+<div class="noselect logo-container">
+    <div class="logo"></div>
+
+    <p>
+        在这里，分享与查阅数学讲义。
+    </p>
+</div>
+
+<div class="box not-too-wide center-block">
+    <div class="box-title">
+        全部课程
+    </div>
+
+    <partial name="Shared/_CourseListPartial" model="Model.CourseListModel"/>
+</div>

@@ -1,0 +1,443 @@
+/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification 
+for details on configuring this project to bundle and minify static web assets. */
+
+@font-face {
+    font-family: 'PT Sans';
+    src: url(/fonts/PTS55F.ttf);
+}
+
+@font-face {
+    font-family: 'PT Sans';
+    font-style: italic;
+    src: url(/fonts/PTS56F.ttf);
+}
+
+@font-face {
+    font-family: 'PT Sans';
+    font-weight: bold;
+    src: url(/fonts/PTS75F.ttf);
+}
+
+@font-face {
+    font-family: 'PT Sans';
+    font-weight: bold;
+    font-style: italic;
+    src: url(/fonts/PTS76F.ttf);
+}
+
+body {
+    padding-top: 75px;
+    padding-bottom: 20px;
+    font-family: 'PT Sans', Arial, 'Microsoft YaHei', sans-serif;
+    font-size: 16px;
+    background: #fafaf8;
+}
+
+.header-navbar {
+    background: #fee630;
+    height: 60px;
+    padding-top: 12px;
+    border-bottom-width: 1px;
+    border-bottom-color: #e0c820;
+}
+
+.header-row {
+    width: 100%;
+    height: 40px;
+    margin-left: 0;
+    margin-right: 0;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+}
+
+.header-image {
+    display: flex;
+}
+
+.header-image-link {
+    background-image: url(/images/banana-title.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 210px;
+    height: 40px;
+}
+
+.header-login-div {
+    height: 40px;
+    display: flex;
+    flex-grow: 1;
+    justify-content: flex-end;
+}
+
+.header-username {
+    font-weight: bold;
+    padding: .5em 1em;
+    color: #333;
+}
+
+    .header-username:hover {
+        color: #000;
+    }
+
+.header-button {
+    padding: .5em 1.2em;
+    margin: 0 .3em;
+    color: #333;
+}
+
+    .header-button:hover {
+        background-color: #fee630;
+        background-color: rgba(50,50,50,.05);
+        color: #000;
+    }
+
+h1 {
+    color: #f47010;
+    font-family: 'PT Sans', 'Trebuchet MS', Arial, 'Microsoft YaHei', sans-serif;
+}
+
+.box-h1 {
+    margin-top: 0;
+    margin-bottom: 40px;
+}
+
+h2 {
+    color: #a20;
+    font-family: 'PT Sans', 'Trebuchet MS', Arial, 'Microsoft YaHei', sans-serif;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+.button-yellow {
+    background-color: #fee630;
+    border-radius: 0;
+    color: #333;
+    font-size: 16px;
+    padding: .3em 1.2em .4em 1.2em;
+}
+
+    .button-yellow:hover {
+        background-color: #f0dc20;
+        color: #000;
+    }
+
+.button-red {
+    background-color: #e00;
+    border-radius: 0;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    padding: .3em 1.2em .4em 1.2em;
+}
+
+    .button-red:hover {
+        background-color: #e44;
+        color: #fff;
+    }
+
+    .button-red:focus {
+        color: #fff;
+    }
+
+.one-em-wide {
+    display: inline;
+    padding: 0 1em 0 0;
+}
+
+.text-highlight {
+    color: #f47010;
+    font-size: 20px;
+}
+
+.login-div-column {
+    max-width: 500px;
+    margin: 1.5rem;
+}
+
+.box {
+    background-color: #fff;
+    box-shadow: 0 0 10px 0 rgba(0,0,0,.2);
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.box-title {
+    width: 100%;
+    font-size: 18px;
+    font-weight: bold;
+    background-color: #fee630;
+    padding: .3em 1em .3em 1em;
+}
+
+.logo-container {
+    font-size: 32px;
+    text-align: center;
+    padding: 20px 0 40px 0;
+}
+
+.logo {
+    background-image: url(/images/banana-large.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center top;
+    height: 60vh;
+    min-height: 300px;
+    max-height: 450px;
+}
+
+.not-too-wide {
+    width: 100%;
+    max-width: 800px;
+}
+
+.not-wide {
+    width: 100%;
+    max-width: 500px;
+}
+
+.large-padding {
+    padding: 40px;
+}
+
+.med-padding {
+    padding: 20px;
+}
+
+.large-margin-top {
+    margin-bottom: 50px;
+    margin-top: 50px;
+}
+
+.med-margin-right {
+    margin-right: 20px;
+}
+
+.small-margin {
+    margin: 5px;
+}
+
+.small-margin-top {
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+.course-list-container {
+    display: flex;
+    justify-content: center;
+}
+
+.list-header {
+    font-size: 18px;
+    font-weight: bold;
+    background-color: #fee630;
+    padding: .3em 1em .3em 1em;
+}
+
+.list-header-null {
+    border-style: solid;
+    border-width: 0 0 1px 0;
+    border-color: #ddd;
+}
+
+.list-item {
+    background-color: #fff;
+    border-style: solid;
+    border-width: 0 0 1px 0;
+    border-color: #ddd;
+    display: block;
+    text-decoration: none;
+    padding: .3em 1em .5em 1em;
+}
+
+    .list-item:hover {
+        background-color: #eee;
+    }
+
+.list-item-narrow {
+    padding: .3em .5em;
+}
+
+.link-no-underline {
+    text-decoration: none;
+}
+
+    .link-no-underline:hover {
+        text-decoration: none;
+    }
+
+    .link-no-underline:focus {
+        text-decoration: none;
+    }
+
+.list-item-header {
+    color: #f47010;
+    font-size: 20px;
+    font-family: 'PT Sans', 'Trebuchet MS', Arial, 'Microsoft YaHei', sans-serif;
+    display: flex;
+    align-items: center;
+}
+
+.list-item-header-description {
+    color: gray;
+    font-size: 14px;
+    margin-left: 1em;
+}
+
+.list-item-description {
+    color: gray;
+    font-size: 14px;
+}
+
+.list-item-current {
+    color: #333;
+    font-weight: bold;
+}
+
+.list-item-unsel {
+    padding: .3em 1em;
+}
+
+    .list-item-unsel .show-on-sel {
+        display: none;
+    }
+
+.list-item-sel {
+    background-color: #f6f6f6;
+}
+
+.link-row {
+    margin-top: 5px;
+}
+
+.link-row-item {
+    margin: 10px;
+    margin-right: 10px;
+}
+
+.page-list-item-normal {
+    font-size: 18px;
+}
+
+.page-list-item-unpublished {
+    font-size: 18px;
+    color: darkgray;
+}
+
+.page-list-item-has-draft {
+    font-size: 18px;
+    color: #2b2;
+}
+
+.ui-widget, .ui-widget button, .ui-widget input {
+    font-family: 'PT Sans', Arial, 'Microsoft YaHei', sans-serif;
+}
+
+.ui-widget-header {
+    background: #fee630;
+    border-color: white;
+}
+
+.ui-dialog {
+    box-shadow: 0 0 20px 0 rgba(0,0,0,.3);
+}
+
+.dialog {
+    display: none;
+}
+
+.dialog-button-row {
+    display: flex;
+    align-content: center;
+    justify-content: flex-end;
+}
+
+/* ViewPage.cshtml */
+
+.page-body {
+    width: 75%;
+}
+
+.user-page-content {
+    font-size: 18px;
+    text-align: justify;
+    line-height: 1.5;
+    color: black;
+}
+
+.user-page-content p {
+    margin-bottom: 18px;
+}
+
+.sidebar {
+    width: 25%;
+    float: right;
+    margin-top: -20px;
+}
+
+.flex-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* EditPage.cshtml */
+
+.textbox-code, .ui-widget input.textbox-code {
+    width: 100%;
+    font-family: Consolas, 'Microsoft YaHei', monospace;
+    tab-size: 4;
+    resize: none;
+}
+
+.textarea-content {
+    min-height: 300px;
+    overflow-y: hidden;
+}
+
+/* Others */
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.enum-item {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: nowrap;
+}
+
+.enum-item-label {
+    margin-left: .25em;
+    width: 2em;
+    flex-shrink: 0;
+}
+
+.paragraph {
+    margin-bottom: 18px;
+}
+
+.enum-item:last-child > .enum-item-label > .paragraph:last-child,
+.enum-item:last-child > .enum-item-content > .paragraph:last-child {
+    display: inline;
+    display: contents;
+}
+
+/* Hide/rearrange for smaller screens */
+@media screen and (max-width: 767px) {
+    .page-body {
+        width: 100%;
+    }
+    
+    .sidebar {
+        display: none;
+    }
+
+    .large-padding {
+        padding: 20px;
+    }
+}

@@ -1,0 +1,25 @@
+﻿@model HeaderPartialModel
+
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Http.Extensions
+
+@inject SignInManager<Banana.Areas.Identity.Data.BananaUser> SignInManager
+
+<div class="row header-row">
+    <div class="header-image">
+        <a class="header-image-link" href="~/"></a>
+    </div>
+
+    <div class="header-login-div">
+        @if (SignInManager.IsSignedIn(User))
+        {
+            <a class="header-username" href="~/user">@User.Identity.Name</a>
+            <a class="header-button link-no-underline" href="~/Identity/Account/Logout?returnUrl=@Context.Request.GetEncodedPathAndQuery()">退出</a>
+        }
+        else
+        {
+            <a class="header-button link-no-underline" href="~/Identity/Account/Login?returnUrl=@Context.Request.GetEncodedPathAndQuery()">登录</a>
+            <a class="header-button link-no-underline" href="~/Identity/Account/Register?returnUrl=@Context.Request.GetEncodedPathAndQuery()">注册</a>
+        }
+    </div>
+</div>

@@ -1,0 +1,75 @@
+﻿@page
+@model Banana.Pages.UserProfileModel
+@using Banana.Pages.Shared
+@{
+    ViewData["Title"] = "我的课程";
+}
+
+<div class="not-too-wide center-block">
+    <h1 class="text-center med-padding">@ViewData["Title"]</h1>
+
+    <div class="box">
+        <div class="box-title">
+            我关注的课程
+        </div>
+
+        @if (Model.FollowedCourses != null && Model.FollowedCourses.Any())
+        {
+            <partial name="Shared/_CourseListPartial" model="new _CourseListPartialModel { Courses = Model.FollowedCourses }" />
+        }
+        else
+        {
+            <div class="med-padding">
+                你没有关注任何课程。
+            </div>
+        }
+    </div>
+
+    <div class="box">
+        <div class="box-title">
+            我创建的课程
+        </div>
+
+        @if (Model.CreatedCourses != null && Model.CreatedCourses.Any())
+        {
+            <partial name="Shared/_CourseListPartial" model="new _CourseListPartialModel { Courses = Model.CreatedCourses }" />
+
+            <a class="link-no-underline" href="~/NewCourse">
+                <div class="list-item">
+                    创建新课程
+                </div>
+            </a>
+        }
+        else
+        {
+            <div class="med-padding">
+                <p>
+                    你没有创建任何课程。
+                </p>
+
+                <a href="~/NewCourse" class="btn button-yellow small-margin-top">创建课程</a>
+            </div>
+        }
+    </div>
+
+    @if (Model.IsAdmin)
+    {
+        <div class="box not-too-wide center-block">
+            <div class="box-title">
+                待审核课程
+            </div>
+
+            @if (Model.AllCourseRequests != null && Model.AllCourseRequests.Any())
+            {
+                <partial name="Shared/_CourseListPartial" model="new _CourseListPartialModel { Courses = Model.AllCourseRequests, Type = CourseListType.ManageRequests }" />
+            }
+            else
+            {
+                <div class="med-padding">
+                    没有待审核课程。
+                </div>
+            }
+        </div>
+    }
+</div>
+

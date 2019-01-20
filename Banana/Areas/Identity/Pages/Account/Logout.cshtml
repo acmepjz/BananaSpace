@@ -1,0 +1,14 @@
+﻿@page
+@model LogoutModel
+@{
+    ViewData["Title"] = "退出登录";
+}
+
+<div class="box center-block not-wide large-padding large-margin-top">
+    <h1 class="text-center box-h1">@ViewData["Title"]</h1>
+
+    <form method="post">
+        <p>确定要退出登录吗？</p>
+        <button type="submit" class="btn button-yellow">确定</button>
+    </form>
+</div>

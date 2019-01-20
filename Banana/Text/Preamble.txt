@@ -1,0 +1,212 @@
+﻿\@@let\let\@@let
+\let\alet\@@alet
+\let\leta\@@leta
+\let\def\@@def
+\let\adef\@@adef
+\let\defa\@@defa
+\let\edef\@@edef
+\let\aedef\@@aedef
+\let\edefa\@@edefa
+\let\sdef\@@sdef
+\let\asdef\@@asdef
+\let\sdefa\@@sdefa
+
+\def\@inc#1{\@@add{#1}1}
+\def\@dec#1{\@@add{#1}{-1}}
+\def\@sett#1{\@@set{#1}{1}}
+\def\@setf#1{\@@set{#1}{-1}}
+\def\@ift#1{\@@set{.ift}{{#1}}\@dec{.ift}\@@ifzero{.ift}}
+  \let\@ifone\@ift
+\def\@ifmmode{\@ift{math-mode}}
+\def\@textdef{\@sett{text-def}}
+\def\tdef{\@textdef\def}
+
+\def\@ensuremath{\@ifmmode{}{\@@error{}}}
+
+
+%%%%%%%%%%    TEXT FORMAT     %%%%%%%%%%
+\tdef\it{\@sett{italic}}
+\tdef\rm{\@setf{italic}}
+\tdef\bf{\@sett{bold}}
+\tdef\md{\@setf{bold}}
+\tdef\em{\@ift{italic}{\@setf{italic}}{\@sett{italic}}}
+\tdef\color#1{\@@set{color}{#1}}
+\tdef\textrm#1{{\rm#1}}
+\tdef\textit#1{{\it#1}}
+\tdef\textbf#1{{\bf#1}}
+\tdef\textmd#1{{\md#1}}
+\tdef\emph#1{{\em#1}}
+\tdef\textcolor#1#2{{\color{#1}#2}}
+\tdef\floatleft#1{{\@@set{float}{left}#1}}
+\tdef\floatright#1{{\@@set{float}{right}#1}}
+
+\def\setparsep#1{\@@set{par-sep}{#1}}
+
+
+%%%%%%%%%% SPECIAL CHARACTERS %%%%%%%%%%
+\def\@u#1#2#3#4{\@@char{#1#2#3#4}}
+\sdef--{\@ifmmode{\@u002d\@u002d}{\@u2013}}
+  \asdef---{\@ifmmode{\@u002d\@u002d\@u002d}{\@u2014}}
+\sdef`{\@ifmmode{\@u0060}{\@u2018}}
+  \asdef``{\@ifmmode{\@u0060\@u0060}{\@u201c}}
+\sdef'{\@ifmmode{\@u0027}{\@u2019}}
+  \asdef''{\@ifmmode{\@u0027\@u0027}{\@u201d}}
+\sdef
+
+{\@par}
+\def\par{\@@par}
+\def\@par{\@@par}
+\tdef\`#1{#1\@u0300}
+\tdef\'#1{#1\@u0301}
+\tdef\^#1{#1\@u0302}
+\tdef\~#1{#1\@u0303}
+\tdef\=#1{#1\@u0304}
+\tdef\u#1{#1\@u0306}
+\tdef\.#1{#1\@u0307}
+\tdef\"#1{#1\@u0308}
+\tdef\r#1{#1\@u030a}
+\tdef\H#1{#1\@u030b}
+\tdef\v#1{#1\@u030c}
+\tdef\c#1{#1\@u0327}
+\tdef\AE{\@u00c6}
+\tdef\ae{\@u00e6}
+\tdef\L{\@u0141}
+\tdef\l{\@u0142}
+\tdef\O{\@u00d8}
+\tdef\o{\@u00f8}
+\tdef\OE{\@u0152}
+\tdef\oe{\@u0153}
+\tdef\S{\@u00a7}
+\tdef\SS{\@u1e9e}
+\tdef\ss{\@u00df}
+\tdef\{{\@u007b}
+\tdef\}{\@u007d}
+\tdef\#{\@u0023}
+\tdef\${\@u0024}
+\tdef\%{\@u0025}
+\tdef\&{\@u0026}
+\tdef\ {\@u0020}
+
+\tdef\dagger{\@u2020}
+\tdef\ddagger{\@u2021}
+\tdef\bullet{\@u2022}
+% ...
+
+
+%%%%%%%%%%      COUNTERS      %%%%%%%%%%
+\def\newcounter#1{\@@set{g.cnt.#1}{0}\@@ea\def\@@csname{the#1}{\arabic{#1}}}
+\def\stepcounter#1{\@inc{g.cnt.#1}}
+\def\refstepcounter#1{\@inc{g.cnt.#1}\edef\@currentlabel{\@@csname{the#1}}\@@bmk}
+\def\addtocounter#1#2{\@@add{g.cnt.#1}{#2}}
+\def\setcounter#1#2{\@@set{g.cnt.#1}{#2}}
+\def\arabic#1{\@@set{get-format}{0}\@@get{g.cnt.#1}}
+\def\alph#1{\@@set{get-format}{1}\@@get{g.cnt.#1}}
+\def\Alph#1{\@@set{get-format}{2}\@@get{g.cnt.#1}}
+\def\roman#1{\@@set{get-format}{3}\@@get{g.cnt.#1}}
+\def\Roman#1{\@@set{get-format}{4}\@@get{g.cnt.#1}}
+
+
+%%%%%%%%%%    ENVIRONMENTS    %%%%%%%%%%
+\sdef\begin#1{\@@bg\@@csname{#1}}
+\sdef\end#1{\@endenv{#1}\@@eg}
+\def\@endenv#1{\@@csname{end#1}}
+\def\@defenv##1##2##3{\@@ea\def\@@csname{##1}##2~\@endenv\@@ne\@@bg##1\@@ne\@@eg{##3}}
+\def\@adefenv##1##2##3{\@@ea\adef\@@csname{##1}##2~\@endenv\@@ne\@@bg##1\@@ne\@@eg{##3}}
+
+
+%%%%%%%%%%      THEOREMS      %%%%%%%%%%
+\def\thmprefix{\@secnum.}
+\def\thetheorem{\thmprefix\arabic{theorem}}
+\@defenv{@theorem}{#1#2}{\par\textbf{#1.} #2\par}
+  \@adefenv{@theorem}{#1[#2~]#3}{\par\textbf{#1} (#2)\textbf{.} #3\par}
+\def\theoremstyle\@@bg plain\@@eg{\def\@thmbegin{\it}}
+  \defa\theoremstyle\@@bg definition\@@eg{\def\@thmbegin{}}
+  \defa\theoremstyle\@@bg remark\@@eg{\def\@thmbegin{}}
+\def\newtheorem###1###2{%
+  \@textdef\@defenv{###1}{#1}{%
+    \begin{@theorem}{%
+      \refstepcounter{theorem}###2 \thetheorem%
+    }\@@ne\@@ex\@thmbegin#1\end{@theorem}%
+  }%
+  \@adefenv{###1}{[#1~]#2}{%
+    \begin{@theorem}{%
+      \refstepcounter{theorem}###2 \thmprefix\arabic{theorem}%
+    }[#1]\@@ne\@@ex\@thmbegin#2\end{@theorem}%
+  }%
+}
+\adef\newtheorem*###1###2{%
+  \@textdef\@defenv{###1}{#1}{%
+    \begin{@theorem}{###2}\@@ne\@@ex\@thmbegin#1\end{@theorem}%
+  }%
+  \@adefenv{###1}{[#1~]#2}{%
+    \begin{@theorem}{###2}[#1]\@@ne\@@ex\@thmbegin#2\end{@theorem}%
+  }%
+}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+\theoremstyle{plain}
+
+\tdef\qedsymbol{$\@u25fb$}
+\def\@qedsymbol{\qedsymbol}
+\def\@qed{~\floatright{\@qedsymbol}\par}
+  \let\qed\@qed
+\def\qedhere{\reqno{\qedsymbol}\def\qed{\let\qed\@qed}}
+\@defenv{@proof}{#1#2}{\let\qed\@qed\par\textbf{#1.} #2\qed}
+\def\newproof###1###2{%
+  \@textdef\@defenv{###1}{#1}{%
+    \begin{@proof}{###2}#1\end{@proof}%
+  }%
+}
+\newproof{proof}{Proof}
+
+
+%%%%%%%%%%       LISTS        %%%%%%%%%%
+\def\item{\@@item}
+  \adef\item[#1~]{\let\@templabel\@itemlabel\def\@itemlabel{\refstepcounter{enum.{enum-level}}#1}\@@item\let\@itemlabel\@templabel}
+\def\@itemlabel@{\@itemlabel} % for a \@@ea trick
+\@defenv{@enumerate}{#1\item#2}{%
+  \@inc{enum-level}%
+  \newcounter{enum.{enum-level}}%
+  \@ifone{enum-level}{%
+    \@@ea\def\@@csname{@templabel.1}{}
+  }{%
+    \@@ea\let\@@csname{@templabel.{enum-level}}\@itemlabel%
+  }%
+  \def\@itemlabel{\refstepcounter{enum.{enum-level}}#1}%
+  \@@list{\setparsep{6}\item#2}%
+  \@@ea\let\@@ea\@itemlabel@\@@csname{@templabel.{enum-level}}%
+}
+\@defenv{enumerate}{\item#1}{\begin{@enumerate}{\rm(\arabic*)}\item#1\end{@enumerate}}
+  \@adefenv{enumerate}{[label=#1~]\item#2}{\begin{@enumerate}{\rm#1}\item#2\end{@enumerate}}
+\@defenv{itemize}{\item#1}{\begin{@enumerate}{\rm\bullet}\item#1\end{@enumerate}}
+
+\adef\arabic*{\arabic{enum.{enum-level}}}
+\adef\alph*{\alph{enum.{enum-level}}}
+\adef\Alph*{\Alph{enum.{enum-level}}}
+\adef\roman*{\roman{enum.{enum-level}}}
+\adef\Roman*{\Roman{enum.{enum-level}}}
+
+
+%%%%%%%%%%     EQUATIONS      %%%%%%%%%%
+\def\eqno#1{\def\@beforedisplay{#1}}
+\def\reqno#1{\def\@afterdisplay{#1}}
+\def\@beforedisplay{}
+\def\@afterdisplay{}
+\def\theequation{\thetheorem.\arabic{equation}}
+\def\@eqno{\refstepcounter{equation}\eqno{(\theequation)}}
+\@defenv{equation}{#1}{\[\@eqno#1\]}
+\@defenv{equation*}{#1}{\[#1\]}
+
+
+%%%%%%%%%%     CROSS-REFS     %%%%%%%%%%
+\let\ref\@@ref
+\let\label\@@label
+\def\eqref#1{(\@@ref{#1})}
