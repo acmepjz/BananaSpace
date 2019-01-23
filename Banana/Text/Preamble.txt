@@ -70,6 +70,8 @@
 \tdef\c#1{#1\@u0327}
 \tdef\AE{\@u00c6}
 \tdef\ae{\@u00e6}
+\tdef\i{\@u0131}
+\tdef\j{\@u0237}
 \tdef\L{\@u0141}
 \tdef\l{\@u0142}
 \tdef\O{\@u00d8}

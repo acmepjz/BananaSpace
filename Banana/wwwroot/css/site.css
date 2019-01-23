@@ -2,33 +2,33 @@
 for details on configuring this project to bundle and minify static web assets. */
 
 @font-face {
-    font-family: 'PT Sans';
-    src: url(/fonts/PTS55F.ttf);
+    font-family: 'Open Sans';
+    src: url(/fonts/OpenSans-Regular.ttf);
 }
 
 @font-face {
-    font-family: 'PT Sans';
+    font-family: 'Open Sans';
     font-style: italic;
-    src: url(/fonts/PTS56F.ttf);
+    src: url(/fonts/OpenSans-Italic.ttf);
 }
 
 @font-face {
-    font-family: 'PT Sans';
+    font-family: 'Open Sans';
     font-weight: bold;
-    src: url(/fonts/PTS75F.ttf);
+    src: url(/fonts/OpenSans-Bold.ttf);
 }
 
 @font-face {
-    font-family: 'PT Sans';
+    font-family: 'Open Sans';
     font-weight: bold;
     font-style: italic;
-    src: url(/fonts/PTS76F.ttf);
+    src: url(/fonts/OpenSans-BoldItalic.ttf);
 }
 
 body {
     padding-top: 75px;
     padding-bottom: 20px;
-    font-family: 'PT Sans', Arial, 'Microsoft YaHei', sans-serif;
+    font-family: 'Open Sans', Arial, 'Microsoft YaHei', sans-serif;
     font-size: 16px;
     background: #fafaf8;
 }
@@ -94,7 +94,7 @@ body {
 
 h1 {
     color: #f47010;
-    font-family: 'PT Sans', 'Trebuchet MS', Arial, 'Microsoft YaHei', sans-serif;
+    font-family: 'Open Sans', 'Trebuchet MS', Arial, 'Microsoft YaHei', sans-serif;
 }
 
 .box-h1 {
@@ -104,7 +104,7 @@ h1 {
 
 h2 {
     color: #a20;
-    font-family: 'PT Sans', 'Trebuchet MS', Arial, 'Microsoft YaHei', sans-serif;
+    font-family: 'Open Sans', 'Trebuchet MS', Arial, 'Microsoft YaHei', sans-serif;
     margin-top: 30px;
     margin-bottom: 20px;
 }
@@ -273,7 +273,7 @@ h2 {
 .list-item-header {
     color: #f47010;
     font-size: 20px;
-    font-family: 'PT Sans', 'Trebuchet MS', Arial, 'Microsoft YaHei', sans-serif;
+    font-family: 'Open Sans', 'Trebuchet MS', Arial, 'Microsoft YaHei', sans-serif;
     display: flex;
     align-items: center;
 }
@@ -330,7 +330,7 @@ h2 {
 }
 
 .ui-widget, .ui-widget button, .ui-widget input {
-    font-family: 'PT Sans', Arial, 'Microsoft YaHei', sans-serif;
+    font-family: 'Open Sans', Arial, 'Microsoft YaHei', sans-serif;
 }
 
 .ui-widget-header {
@@ -425,6 +425,13 @@ h2 {
 .enum-item:last-child > .enum-item-content > .paragraph:last-child {
     display: inline;
     display: contents;
+}
+
+.bookmark {
+    width: 1px;
+    height: 1px;
+    position: absolute;
+    margin-top: -70px;
 }
 
 /* Hide/rearrange for smaller screens */

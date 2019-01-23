@@ -32,9 +32,9 @@
                 </div>
 
                 <div class="form-group">
-                    <input type="submit" value="保存并预览" class="btn button-yellow" asp-route-id="@Model.UserPage.Id" />
+                    <input type="submit" value="保存并预览" class="btn button-yellow leave-no-confirm" asp-route-id="@Model.UserPage.Id" />
                     <div class="one-em-wide"></div>
-                    <input type="submit" value="发布" class="btn button-yellow" asp-route-id="@Model.UserPage.Id" asp-route-publish="true" />
+                    <input type="submit" value="发布" class="btn button-yellow leave-no-confirm" asp-route-id="@Model.UserPage.Id" asp-route-publish="true" />
                     <div class="one-em-wide"></div>
                     <a class="btn button-yellow" href="@(Model.UserPage.IsPublic ? "/page/" + Model.UserPage.Id : "/manage/" + Model.UserPage.CourseId)">返回</a>
                 </div>

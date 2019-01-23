@@ -15,11 +15,11 @@ namespace Banana.Pages
 {
     public class EditPageModel : PageModel
     {
-        private readonly UserPageManager _userPageManager;
+        private readonly UserPageManager _pageManager;
 
         public EditPageModel(UserPageManager userPageManager)
         {
-            _userPageManager = userPageManager;
+            _pageManager = userPageManager;
         }
 
         [BindProperty]
@@ -51,14 +51,14 @@ namespace Banana.Pages
         {
             if (int.TryParse(id, out int pageId))
             {
-                UserPage = _userPageManager.GetPage(pageId);
+                UserPage = _pageManager.GetPage(pageId);
                 if (UserPage == null) return;
 
                 ViewData["Title"] = "编辑: " + UserPage.Title;
                 if (UserPage.DraftId != null)
-                    DraftPage = _userPageManager.GetPage(UserPage.DraftId ?? 0);
-                UserCourse = _userPageManager.GetCourse(UserPage.CourseId);
-                AllPagesInCourse = _userPageManager.GetAllPages(UserPage.CourseId);
+                    DraftPage = _pageManager.GetPage(UserPage.DraftId ?? 0);
+                UserCourse = _pageManager.GetCourse(UserPage.CourseId);
+                AllPagesInCourse = _pageManager.GetAllPages(UserPage.CourseId);
 
                 var page = DraftPage ?? UserPage;
                 Input = new InputModel
@@ -70,67 +70,81 @@ namespace Banana.Pages
             }
         }
 
-        private void UpdateContent(UserPage page)
+        private void UpdateContent(UserPage page, out ExpansionData data)
         {
             string title = Input.Title;
             if (string.IsNullOrWhiteSpace(title)) title = "无标题";
             page.Title = title;
-            page.HtmlTitle = Parser.ToHtml(title, page, ParserOptions.SingleLine);
+            page.HtmlTitle = Parser.ToHtml(title, page, ParserOptions.SingleLine, out data);
 
+            var labels = _pageManager.GetAllLabels(page.CourseId);
             page.Content = Input.Content;
-            page.HtmlContent = Parser.ToHtml(Input.Content, page, ParserOptions.Default);
+            page.HtmlContent = Parser.ToHtml(Input.Content, page, ParserOptions.Default, out data, labels);
+        }
+
+        private void UpdateLabels(UserPage page, ExpansionData data)
+        {
+            _pageManager.ClearLabels(page);
+
+            foreach (var bookmark in data.Bookmarks)
+            {
+                string content = Parser.ToHtmlFinal(bookmark.Content, ParserOptions.SingleLine);
+                _pageManager.AddLabel(page, bookmark.Label, content);
+            }
         }
 
         public IActionResult OnPost(int id, bool publish = false)
         {
             if (ModelState.IsValid)
             {
-                UserPage = _userPageManager.GetPage(id);
+                UserPage = _pageManager.GetPage(id);
                 if (UserPage == null)
                     return LocalRedirect("~/");
                 if (UserPage.DraftId != null)
-                    DraftPage = _userPageManager.GetPage(UserPage.DraftId ?? 0);
+                    DraftPage = _pageManager.GetPage(UserPage.DraftId ?? 0);
 
                 if (publish) // user clicked 'Publish'
                 {
-                    _userPageManager.Update(UserPage);
-                    UpdateContent(UserPage);
+                    _pageManager.Update(UserPage);
+                    UpdateContent(UserPage, out var data);
                     UserPage.DraftId = null;
                     UserPage.IsPublic = true;
                     UserPage.LastModifiedDate = DateTime.Now;
 
                     if (DraftPage != null)
-                        _userPageManager.Remove(DraftPage);
+                        _pageManager.Remove(DraftPage);
 
-                    _userPageManager.SaveChanges();
+                    UpdateLabels(UserPage, data);
+
+                    _pageManager.SaveChanges();
                     return LocalRedirect($"~/page/{id}");
                 }
 
                 // if we are here then user has clicked 'Preview'
                 if (UserPage.IsPublic && DraftPage == null)
                 {
-                    int newId = _userPageManager.NewId();
+                    int newId = _pageManager.NewId();
 
                     var page = UserPage.CopyAsDraft();
                     page.Id = newId;
-                    UpdateContent(page);
-                    _userPageManager.Add(page);
+                    UpdateContent(page, out var data);
+                    _pageManager.Add(page);
 
-                    _userPageManager.Update(UserPage);
+                    _pageManager.Update(UserPage);
                     UserPage.DraftId = newId;
                 }
                 else if (!UserPage.IsPublic)
                 {
-                    _userPageManager.Update(UserPage);
-                    UpdateContent(UserPage);
+                    _pageManager.Update(UserPage);
+                    UpdateContent(UserPage, out var data);
                 }
                 else // IsPublic && DraftPage != null
                 {
-                    _userPageManager.Update(DraftPage);
-                    UpdateContent(DraftPage);
+                    _pageManager.Update(DraftPage);
+                    UpdateContent(DraftPage, out var data);
                 }
 
-                _userPageManager.SaveChanges();
+                _pageManager.SaveChanges();
                 return LocalRedirect($"~/page/{id}/edit");
             }
 

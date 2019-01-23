@@ -196,7 +196,7 @@ namespace Banana.Pages
                     TheoremPrefix = theoremPrefix,
                     Title = title
                 };
-                newPage.HtmlTitle = Parser.ToHtml(title, newPage, ParserOptions.SingleLine);
+                newPage.HtmlTitle = Parser.ToHtml(title, newPage, ParserOptions.SingleLine, out var data);
                 _pageManager.AddPage(newPage, index);
 
                 _pageManager.SaveChanges();

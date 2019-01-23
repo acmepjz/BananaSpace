@@ -11,12 +11,18 @@ namespace Banana.Text
 {
     public class Parser
     {
-        public static string ToHtml(string s, UserPage page, ParserOptions options)
+        // compiles tokens and returns html string
+        // labels are used for \ref{} substituting
+        public static string ToHtml(string s, UserPage page, ParserOptions options, out ExpansionData data, IQueryable<UserLabel> labels = null)
         {
-            if (string.IsNullOrWhiteSpace(s)) return "";
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                data = null;
+                return "";
+            }
 
             var tokens = Expression.Parse(s);
-            var data = Preamble.GetInitialExpansionData();
+            data = Preamble.GetInitialExpansionData();
 
             // add \@secnum
             var secNum = new List<Token>();
@@ -35,10 +41,11 @@ namespace Banana.Text
             Expression.ExpandSpecials(tokens, data);
             tokens = Expression.ExpandFinal(tokens, data);
 
-            return ToHtml(tokens, options, data);
+            return ToHtmlFinal(tokens, options, data, labels);
         }
 
-        public static string ToHtml(List<Token> tokens, ParserOptions options, ExpansionData data = null)
+        // converts compiled tokens to html string
+        public static string ToHtmlFinal(List<Token> tokens, ParserOptions options, ExpansionData data = null, IQueryable<UserLabel> labels = null)
         {
             string html = "";
             bool singleLine = options.HasFlag(ParserOptions.SingleLine);
@@ -103,6 +110,10 @@ namespace Banana.Text
                                 html += HttpUtility.HtmlEncode(token.Text);
                             break;
                         case TokenType.Whitespace:
+                            // ignore space after cjk punctuation
+                            if (last?.Type == TokenType.Text && last.Text.Length == 1 && IsCjkPunctuation(last.Text[0]))
+                                break;
+
                             if (last?.Type != TokenType.Whitespace)
                                 html += " ";
                             break;
@@ -133,7 +144,7 @@ namespace Banana.Text
                             foreach (var bookmark in data.Bookmarks)
                             {
                                 if (bookmark.Id == id)
-                                    html += $"<a id=\"{bookmark.Label}\"></a>";
+                                    html += $"<a id=\"{bookmark.Label}\" class=\"bookmark\"></a>";
                             }
                             break;
                         case TokenType.Reference:
@@ -141,12 +152,19 @@ namespace Banana.Text
                             foreach (var bookmark in data.Bookmarks)
                                 if (bookmark.Label == token.Text)
                                 {
-                                    string content = ToHtml(bookmark.Content, ParserOptions.SingleLine);
+                                    string content = ToHtmlFinal(bookmark.Content, ParserOptions.SingleLine);
                                     html += $"<a href=\"#{bookmark.Label}\">{content}</a>";
                                     flag = true;
                                     break;
                                 }
                             if (flag) break;
+
+                            if (labels != null)
+                            {
+                                var l = (from label in labels where label.Key == token.Text select label).FirstOrDefault();
+                                html += $"<a href=\"/page/{l.PageId}#{l.Key}\">{l.Content}</a>";
+                                break;
+                            }
 
                             html += "<span style=\"color:red;font-weight:bold\">??</span>";
 
@@ -165,6 +183,9 @@ namespace Banana.Text
 
             return html;
         }
+
+        private static bool IsCjkPunctuation(char c)
+            => (0x3000 <= c && c <= 0x301f) || (0xff00 <= c && c <= 0xff60);
     }
 
     [Flags]

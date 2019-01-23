@@ -15,6 +15,7 @@ namespace Banana.Data
         private DbSet<UserPage> Pages { get; set; }
         private DbSet<UserCourse> Courses { get; set; }
         private DbSet<UserCoursePagesItem> CoursePages { get; set; }
+        private DbSet<UserLabel> Labels { get; set; }
         private DbSet<UserRole> UserRole { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -176,6 +177,33 @@ namespace Banana.Data
                     item.PageIndex -= removedCount;
                 }
             }
+        }
+
+        public void ClearLabels(UserPage page)
+        {
+            var result = from label in Labels
+                         where label.PageId == page.Id
+                         select label;
+            Labels.RemoveRange(result);
+        }
+
+        public void AddLabel(UserPage page, string key, string content)
+        {
+            Labels.Add(new UserLabel
+            {
+                Id = Guid.NewGuid().ToString(),
+                PageId = page.Id,
+                CourseId = page.CourseId,
+                Key = key,
+                Content = content
+            });
+        }
+
+        public IQueryable<UserLabel> GetAllLabels(int courseId)
+        {
+            return from label in Labels
+                   where label.CourseId == courseId
+                   select label;
         }
     }
 }
