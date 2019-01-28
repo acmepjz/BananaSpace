@@ -38,6 +38,8 @@ namespace Banana.Pages
 
             [Display(Name = "章节编号")]
             public string SectionNumber { get; set; }
+
+            // uploaded files: Request.Form.Files
         }
 
         public readonly string ContentUIHint = "在这里输入页面内容。使用 $ ... $ 或 \\[ ... \\] 插入数学公式，使用 \\textbf 和 \\textit 等设置加粗和倾斜。你可以将自己定义的 LaTeX 命令放在开头，但不能使用 \\usepackage。\r\n\r\n编写新页面时，建议在本地编写好后复制到这里。";

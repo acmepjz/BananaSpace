@@ -21,6 +21,9 @@
     <script type="text/x-mathjax-config">
         MathJax.Hub.Config({
             showProcessingMessages: false,
+            TeX: {
+                extensions: ["mediawiki-texvc.js"]
+            },
             tex2jax: {
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
                 displayMath: [['$$', '$$'], ['\\[', '\\]']],
@@ -29,10 +32,12 @@
             'HTML-CSS': {
                 preferredFont: null,
                 availableFonts: ['STIX'],
-                webFont: 'STIX-Web'
+                webFont: 'STIX-Web',
+                scale: 95
             },
             SVG: {
-                font: 'STIX-Web'
+                font: 'STIX-Web',
+                scale: 95
             }
         });
     </script>
@@ -47,11 +52,11 @@
 
     <div class="container">
         @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; 2018 - Banana Space</p>
-        </footer>
     </div>
+
+    <footer>
+        <div class="footer"><div class="copyleft">&copy;</div><span>&nbsp;Copyleft @DateTime.Now.Year - Banana Space - All rights reversed.</span></div>
+    </footer>
 
     <environment include="Development">
         <script src="~/lib/jquery/dist/jquery.js"></script>

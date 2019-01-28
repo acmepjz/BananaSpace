@@ -68,6 +68,7 @@
 \tdef\H#1{#1\@u030b}
 \tdef\v#1{#1\@u030c}
 \tdef\c#1{#1\@u0327}
+\tdef\AA{\@u00c5}
 \tdef\AE{\@u00c6}
 \tdef\ae{\@u00e6}
 \tdef\i{\@u0131}

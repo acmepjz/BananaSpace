@@ -25,12 +25,54 @@ for details on configuring this project to bundle and minify static web assets. 
     src: url(/fonts/OpenSans-BoldItalic.ttf);
 }
 
+@font-face {
+    font-family: 'Open Sans';
+    font-weight: 300;
+    src: url(/fonts/OpenSans-Light.ttf);
+}
+
+@font-face {
+    font-family: 'Open Sans';
+    font-weight: 300;
+    font-style: italic;
+    src: url(/fonts/OpenSans-LightItalic.ttf);
+}
+
+html {
+    height: 100%;
+}
+
 body {
     padding-top: 75px;
-    padding-bottom: 20px;
+    padding-bottom: 50px;
+    position: relative;
+    box-sizing: border-box;
+    min-height: 100%;
     font-family: 'Open Sans', Arial, 'Microsoft YaHei', sans-serif;
     font-size: 16px;
     background: #fafaf8;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    padding-top: 10px;
+    background-color: #333;
+    color: gray;
+}
+
+.footer {
+    font-size: 14px;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+}
+
+.copyleft {
+    transform: scaleX(-1);
 }
 
 .header-navbar {
@@ -93,8 +135,9 @@ body {
     }
 
 h1 {
-    color: #f47010;
+    color: #e86010;
     font-family: 'Open Sans', 'Trebuchet MS', Arial, 'Microsoft YaHei', sans-serif;
+    font-weight: 300;
 }
 
 .box-h1 {
@@ -146,7 +189,7 @@ h2 {
 }
 
 .text-highlight {
-    color: #f47010;
+    color: #e86010;
     font-size: 20px;
 }
 
@@ -271,7 +314,7 @@ h2 {
     }
 
 .list-item-header {
-    color: #f47010;
+    color: #e86010;
     font-size: 20px;
     font-family: 'Open Sans', 'Trebuchet MS', Arial, 'Microsoft YaHei', sans-serif;
     display: flex;
@@ -381,6 +424,10 @@ h2 {
     justify-content: center;
 }
 
+.text-small {
+    font-size: 14px;
+}
+
 /* EditPage.cshtml */
 
 .textbox-code, .ui-widget input.textbox-code {
@@ -390,13 +437,92 @@ h2 {
     resize: none;
 }
 
-.textarea-content {
+/* CodeMirror */
+
+.CodeMirror {
+    border: 1px solid #ccc;
+    height: auto;
+    font-family: 'DejaVu Sans Mono', 'Microsoft YaHei', monospace;
+    font-size: 14px;
+}
+
+    .CodeMirror pre {
+        padding-left: 8px;
+    }
+
+.CodeMirror-selected {
+    background: #ddd;
+}
+
+.CodeMirror-focused .CodeMirror-selected {
+    background: #d8e8f8;
+}
+
+.CodeMirror-lines, .textarea-code {
     min-height: 300px;
-    overflow-y: hidden;
+}
+
+.CodeMirror-line::selection, .CodeMirror-line > span::selection, .CodeMirror-line > span > span::selection {
+    background: #d8e8f8;
+}
+
+.CodeMirror-line::-moz-selection, .CodeMirror-line > span::-moz-selection, .CodeMirror-line > span > span::-moz-selection {
+    background: #d8e8f8;
+}
+
+.CodeMirror-gutters {
+    font-size: 12px;
+    border-right: none;
+    padding-left: 10px;
+    padding-right: 5px;
+}
+
+.CodeMirror-linenumber {
+    color: #aaa;
+    font-size: 12px;
+    padding-top: 2.5px;
+}
+
+.CodeMirror-code {
+    color: #333;
+}
+
+.CodeMirror-matchingbracket {
+    color: #080 !important;
+    background-color: #cec;
+}
+
+.CodeMirror-nonmatchingbracket {
+    color: #aaa !important;
+}
+
+.CodeMirror-hints {
+    width: 200px;
+    font-family: 'DejaVu Sans Mono', 'Microsoft YaHei', monospace;
+}
+
+.CodeMirror-hint {
+    color: #333;
+}
+
+.CodeMirror-hint-active {
+    color: #07a !important;
+    background-color: #e8f4ff !important;
+}
+
+.cm-special, .cm-command {
+    color: #18c;
+}
+
+.cm-environment, .cm-label, .cm-argument {
+    color: #c44 !important;
+}
+
+.cm-comment {
+    color: #bcb !important;
 }
 
 /* Others */
-
 .noselect {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -431,7 +557,7 @@ h2 {
     width: 1px;
     height: 1px;
     position: absolute;
-    margin-top: -70px;
+    margin-top: -75px;
 }
 
 /* Hide/rearrange for smaller screens */

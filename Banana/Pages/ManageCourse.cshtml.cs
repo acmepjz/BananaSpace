@@ -46,7 +46,7 @@ namespace Banana.Pages
                 UserCourse = _pageManager.GetCourse(courseId);
                 if (UserCourse == null ||
                     !(User.Identity.Name == UserCourse.Creator || _pageManager.UserIsAdmin(User.Identity.Name)))
-                    return Actions.RedirectTo404Page();
+                    return NotFound();
 
                 UserPages = _pageManager.GetAllPages(courseId).ToList();
                 DraftPages = new Dictionary<UserPage, UserPage>();
@@ -58,7 +58,7 @@ namespace Banana.Pages
                 return Page();
             }
 
-            return Actions.RedirectTo404Page();
+            return NotFound();
         }
 
         private void PublishPage(UserPage page, DateTime timeStamp)
@@ -89,11 +89,11 @@ namespace Banana.Pages
             {
                 var page = _pageManager.GetPage(id);
                 if (page == null)
-                    return Actions.RedirectTo404Page();
+                    return NotFound();
 
                 var course = _pageManager.GetCourse(page.CourseId);
                 if (!(User.Identity.Name == course.Creator || _pageManager.UserIsAdmin(User.Identity.Name)))
-                    return Actions.RedirectTo404Page();
+                    return NotFound();
 
                 PublishPage(page, DateTime.Now);
                 _pageManager.SaveChanges();
@@ -101,7 +101,7 @@ namespace Banana.Pages
                 return LocalRedirect($"~/page/{id}");
             }
 
-            return Actions.RedirectTo404Page();
+            return NotFound();
         }
 
         public IActionResult OnPostPublishAll(int id)
@@ -110,7 +110,7 @@ namespace Banana.Pages
             {
                 var course = _pageManager.GetCourse(id);
                 if (!(User.Identity.Name == course.Creator || _pageManager.UserIsAdmin(User.Identity.Name)))
-                    return Actions.RedirectTo404Page();
+                    return NotFound();
 
                 var pages = _pageManager.GetAllPages(id).ToList();
                 var now = DateTime.Now;
@@ -121,7 +121,7 @@ namespace Banana.Pages
                 return LocalRedirect($"~/manage/{id}");
             }
 
-            return Actions.RedirectTo404Page();
+            return NotFound();
         }
 
         public IActionResult OnPostAddPage(int id, int option)
@@ -132,21 +132,21 @@ namespace Banana.Pages
             {
                 var page = _pageManager.GetPage(id);
                 if (page == null)
-                    return Actions.RedirectTo404Page();
+                    return NotFound();
 
                 var course = _pageManager.GetCourse(page.CourseId);
                 if (!(User.Identity.Name == course.Creator || _pageManager.UserIsAdmin(User.Identity.Name)))
-                    return Actions.RedirectTo404Page();
+                    return NotFound();
 
                 var pages = _pageManager.GetAllPages(course.Id).ToList();
 
                 // validate
                 if (page.Id == course.MainPageId && option != 1)
-                    return Actions.RedirectTo404Page();
+                    return NotFound();
                 if (page.PageLevel > 2 && option == 2)
-                    return Actions.RedirectTo404Page();
+                    return NotFound();
                 if (pages.Count >= MaxPagesInCourse)
-                    return Actions.RedirectTo404Page();
+                    return NotFound();
 
                 // create and add the page
                 int index = pages.IndexOf(page),
@@ -203,7 +203,7 @@ namespace Banana.Pages
                 return LocalRedirect($"~/manage/{course.Id}");
             }
 
-            return Actions.RedirectTo404Page();
+            return NotFound();
         }
 
         public IActionResult OnPostDeletePage(int id)
@@ -212,21 +212,21 @@ namespace Banana.Pages
             {
                 var page = _pageManager.GetPage(id);
                 if (page == null)
-                    return Actions.RedirectTo404Page();
+                    return NotFound();
 
                 var course = _pageManager.GetCourse(page.CourseId);
                 if (!(User.Identity.Name == course.Creator || _pageManager.UserIsAdmin(User.Identity.Name)))
-                    return Actions.RedirectTo404Page();
+                    return NotFound();
 
                 if (page.Id == course.MainPageId)
-                    return Actions.RedirectTo404Page();
+                    return NotFound();
 
                 _pageManager.DeletePage(page);
                 _pageManager.SaveChanges();
                 return LocalRedirect($"~/manage/{course.Id}");
             }
 
-            return Actions.RedirectTo404Page();
+            return NotFound();
         }
     }
 }

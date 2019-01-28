@@ -54,6 +54,7 @@ namespace Banana
             }
             
             app.UseHttpsRedirection();
+            app.UseStatusCodePagesWithReExecute("/Error");
             app.UseStaticFiles();
             app.UseAuthentication();
             app.UseSession();

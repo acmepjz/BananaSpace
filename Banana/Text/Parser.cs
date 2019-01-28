@@ -65,7 +65,8 @@ namespace Banana.Text
                     }
                     // disable html tags in verbatim output (i.e. math mode)
                     else if (token.Type != TokenType.HtmlTag && token.Type != TokenType.Bookmark)
-                        html += HttpUtility.HtmlEncode(token.ToString());
+                        // '[emoji]' gets encoded to '[emoji]\ufffd'
+                        html += HttpUtility.HtmlEncode(token.ToString()).Replace("\ufffd", "");
                 }
                 else
                 {
@@ -107,7 +108,7 @@ namespace Banana.Text
                             if (token.Text == " ") // from '\ '
                                 html += "<span style=\"white-space:pre-wrap\"> </span>";
                             else
-                                html += HttpUtility.HtmlEncode(token.Text);
+                                html += HttpUtility.HtmlEncode(token.Text).Replace("\ufffd", "");
                             break;
                         case TokenType.Whitespace:
                             // ignore space after cjk punctuation
@@ -162,7 +163,17 @@ namespace Banana.Text
                             if (labels != null)
                             {
                                 var l = (from label in labels where label.Key == token.Text select label).FirstOrDefault();
-                                html += $"<a href=\"/page/{l.PageId}#{l.Key}\">{l.Content}</a>";
+                                if (l != null)
+                                {
+                                    html += $"<a href=\"/page/{l.PageId}#{l.Key}\">{l.Content}</a>";
+                                    break;
+                                }
+                            }
+
+                            if ((token.Text.StartsWith("http://") || token.Text.StartsWith("https://")) &&
+                                Uri.IsWellFormedUriString(token.Text, UriKind.Absolute))
+                            {
+                                html += $"<a href=\"{token.Text}\">{token.Text}</a>";
                                 break;
                             }
 

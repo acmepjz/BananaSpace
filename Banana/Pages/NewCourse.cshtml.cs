@@ -48,7 +48,7 @@ namespace Banana.Pages
             {
                 var course = _pageManager.GetCourse(id);
                 if (course == null || course.Status != CourseStatus.Request)
-                    return Actions.RedirectTo404Page();
+                    return NotFound();
 
                 IsAdmin = true;
                 RequestId = id;
@@ -81,13 +81,13 @@ namespace Banana.Pages
             if (User?.Identity.IsAuthenticated != true)
                 return Actions.RedirectToLoginPage();
             if (!_pageManager.UserIsAdmin(User.Identity.Name))
-                return Actions.RedirectTo404Page();
+                return NotFound();
 
             if (ModelState.IsValid)
             {
                 var course = _pageManager.GetCourse(requestId);
                 if (course == null || course.Status != CourseStatus.Request)
-                    return Actions.RedirectTo404Page();
+                    return NotFound();
 
                 _pageManager.Update(course);
                 course.Title = Input.Title;
@@ -127,11 +127,11 @@ namespace Banana.Pages
             if (User?.Identity.IsAuthenticated != true)
                 return Actions.RedirectToLoginPage();
             if (!_pageManager.UserIsAdmin(User.Identity.Name))
-                return Actions.RedirectTo404Page();
+                return NotFound();
 
             var course = _pageManager.GetCourse(requestId);
             if (course == null || course.Status != CourseStatus.Request)
-                return Actions.RedirectTo404Page();
+                return NotFound();
 
             _pageManager.Remove(course);
 

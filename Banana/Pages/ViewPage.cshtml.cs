@@ -13,24 +13,33 @@ namespace Banana.Pages
         public UserPage UserPage { get; set; }
         public UserCourse UserCourse { get; set; }
         public IEnumerable<UserPage> AllPagesInCourse { get; set; }
+        public bool IsCreatorOrAdmin { get; set; }
 
-        private UserPageManager _userPageManager { get; set; }
+        private UserPageManager _pageManager { get; set; }
 
-        public ViewPageModel(UserPageManager userPageManager)
+        public ViewPageModel(UserPageManager pageManager)
         {
-            _userPageManager = userPageManager;
+            _pageManager = pageManager;
         }
 
-        public void OnGet(string id = null)
+        public IActionResult OnGet(string id = null)
         {
             if (int.TryParse(id, out int pageId))
             {
-                UserPage = _userPageManager.GetPage(pageId);
-                if (UserPage == null) return;
+                UserPage = _pageManager.GetPage(pageId);
+                if (UserPage == null)
+                    return NotFound();
 
-                UserCourse = _userPageManager.GetCourse(UserPage.CourseId);
-                AllPagesInCourse = _userPageManager.GetAllPages(UserPage.CourseId);
+                UserCourse = _pageManager.GetCourse(UserPage.CourseId);
+                AllPagesInCourse = _pageManager.GetAllPages(UserPage.CourseId);
+
+                if (User?.Identity.IsAuthenticated == true)
+                    IsCreatorOrAdmin = User.Identity.Name == UserCourse.Creator ||
+                        _pageManager.UserIsAdmin(User.Identity.Name);
+                return Page();
             }
+
+            return NotFound();
         }
     }
 }

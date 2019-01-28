@@ -1,74 +1,84 @@
 ﻿@page
 @model Banana.Pages.ViewPageModel
 @{
-    ViewData["Title"] = Model.UserPage?.Title ?? "404 - 页面不存在";
+    ViewData["Title"] = Model.UserPage.Title;
 }
 
 <div>
-    @if (Model.UserPage != null)
-    {
-        <div class="sidebar">
-            <div class="box med-padding">
-                <p><span class="text-highlight">0</span> 人关注了本课程。</p>
-                <div class="flex-row">
-                    <a href="~/page/@Model.UserPage.Id/edit" class="btn button-yellow small-margin">编辑页面</a>
-                    <a href="~/manage/@Model.UserCourse.Id" class="btn button-yellow small-margin">课程管理</a>
-                </div>
-            </div>
-
-            <div class="box">
-                <div class="box-title">课程目录</div>
-
-                @foreach (var _page in Model.AllPagesInCourse)
+    <div class="sidebar">
+        <div class="box">
+            <div class="box-title">页面信息</div>
+            <div class="med-padding text-center">
+                <p>发布于 @Model.UserPage.CreationDate.ToString("yyyy-MM-dd")</p>
+                @if (Model.UserPage.LastModifiedDate != Model.UserPage.CreationDate)
                 {
-                    <a class="link-no-underline" href="~/page/@_page.Id">
-                        <div class="list-item list-item-narrow">
-                            @if (_page.Id == Model.UserCourse.MainPageId)
-                            {
-                                <div class="list-item-header">
-                                    @Html.Raw(_page.HtmlTitle)
-                                </div>
-                            }
-                            else if (_page.Id == Model.UserPage.Id)
-                            {
-                                <div class="list-item-current">
-                                    @if (_page.SectionNumber != null)
-                                    {
-                                        @_page.SectionNumber<text>.</text>
-                                    }
-                                    @Html.Raw(_page.HtmlTitle)
-                                </div>
-                            }
-                            else
-                            {
-                                <div>
-                                    @if (_page.SectionNumber != null)
-                                    {
-                                        <strong>@_page.SectionNumber<text>.</text></strong>
-                                    }
-                                    @Html.Raw(_page.HtmlTitle)
-                                </div>
-                            }
-                        </div>
-                    </a>
+                    <p>编辑于 @Model.UserPage.LastModifiedDate.ToString("yyyy-MM-dd")</p>
+                }
+                @if (Model.IsCreatorOrAdmin)
+                {
+                    <div class="flex-row">
+                        <a href="~/page/@Model.UserPage.Id/edit" class="btn button-yellow small-margin">编辑页面</a>
+                        <a href="~/manage/@Model.UserCourse.Id" class="btn button-yellow small-margin">课程管理</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="flex-row">
+                        <a href="~/page/@Model.UserPage.Id/source" class="btn button-yellow small-margin">查看源码</a>
+                        <a class="btn button-yellow small-margin">关注课程</a>
+                    </div>
                 }
             </div>
         </div>
 
-        <div class="page-body">
-            <div class="box med-padding med-margin-right">
-                <h1 class="box-h1">
-                    @Html.Raw(Model.UserPage.HtmlTitle)
-                </h1>
+        <div class="box">
+            <div class="box-title">课程目录</div>
 
-                <div class="user-page-content">
-                    @Html.Raw(Model.UserPage.HtmlContent)
-                </div>
+            @foreach (var _page in Model.AllPagesInCourse)
+            {
+                <a class="link-no-underline" href="~/page/@_page.Id">
+                    <div class="list-item list-item-narrow">
+                        @if (_page.Id == Model.UserCourse.MainPageId)
+                        {
+                            <div class="list-item-header">
+                                @Html.Raw(_page.HtmlTitle)
+                            </div>
+                        }
+                        else if (_page.Id == Model.UserPage.Id)
+                        {
+                            <div class="list-item-current">
+                                @if (_page.SectionNumber != null)
+                                {
+                                    @_page.SectionNumber<text>.</text>
+                                }
+                                @Html.Raw(_page.HtmlTitle)
+                            </div>
+                        }
+                        else
+                        {
+                            <div>
+                                @if (_page.SectionNumber != null)
+                                {
+                                    <strong>@_page.SectionNumber<text>.</text></strong>
+                                }
+                                @Html.Raw(_page.HtmlTitle)
+                            </div>
+                        }
+                    </div>
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="page-body">
+        <div class="box med-padding med-margin-right">
+            <h1 class="box-h1">
+                @(Model.UserPage.SectionNumber == null ? "" : Model.UserPage.SectionNumber + ". ")@Html.Raw(Model.UserPage.HtmlTitle)
+            </h1>
+
+            <div class="user-page-content">
+                @Html.Raw(Model.UserPage.HtmlContent)
             </div>
         </div>
-    }
-    else
-    {
-        <partial name="_PageDoesNotExistPartial" />
-    }
+    </div>
 </div>

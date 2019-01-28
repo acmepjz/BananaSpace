@@ -78,11 +78,6 @@ namespace Banana.Text
                             tokens.Add(new Token(null, TokenType.LineBreak));
                             break;
                         }
-                        if (s[i] == '/')
-                        {
-                            tokens.Add(new Token("\\", TokenType.Text));
-                            break;
-                        }
                         if ("()[]".Contains(s[i]))
                         {
                             tokens.Add(new Token("\\" + s[i], TokenType.MathDelim));

@@ -27,7 +27,7 @@
 
                 <div class="form-group">
                     <label asp-for="Input.Content"></label>
-                    <textarea asp-for="Input.Content" class="form-control textbox-code textarea-content" placeholder="@Model.ContentUIHint" spellcheck="false"></textarea>
+                    <textarea asp-for="Input.Content" class="form-control textbox-code textarea-code" placeholder="@Model.ContentUIHint" spellcheck="false"></textarea>
                     <span asp-validation-for="Input.Content" class="text-danger"></span>
                 </div>
 
@@ -62,4 +62,13 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/codemirror/lib/codemirror.js"></script>
+    <script src="~/lib/codemirror/mode/tex.js" asp-append-version="true"></script>
+    <script src="~/lib/codemirror/addon/edit/matchbrackets.js"></script>
+    <script src="~/lib/codemirror/addon/hint/show-hint.js"></script>
+}
+
+@section Stylesheets {
+    <link rel="stylesheet" href="~/lib/codemirror/lib/codemirror.css" />
+    <link rel="stylesheet" href="~/lib/codemirror/addon/hint/show-hint.css" />
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +14,5 @@ namespace Banana.Pages
 
         public static IActionResult RedirectToUserPage() 
             => new LocalRedirectResult("~/user");
-
-        public static IActionResult RedirectTo404Page()
-            => throw new NotImplementedException();
     }
 }
