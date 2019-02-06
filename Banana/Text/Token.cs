@@ -10,11 +10,26 @@ namespace Banana.Text
         public string Text { get; set; }
         public TokenType Type { get; set; }
         public bool VerbatimOutput { get; set; }
+        public TextPosition Start { get; set; }
+        public TextPosition End { get; set; }
+        public Token Ancestor { get; set; }
 
-        public Token(string text, TokenType type)
+        public Token(string text, TokenType type, TextPosition start, TextPosition end, Token ancestor = null)
         {
             Text = text;
             Type = type;
+            Start = start;
+            End = end;
+            Ancestor = ancestor;
+        }
+
+        public Token(string text, TokenType type, Token ancestor = null)
+        {
+            Text = text;
+            Type = type;
+            Start = TextPosition.None;
+            End = TextPosition.None;
+            Ancestor = ancestor;
         }
 
         public override bool Equals(object obj)
@@ -54,6 +69,27 @@ namespace Banana.Text
                 Type == TokenType.Tilde ? "~" :
                 Text ?? Type.ToString();
         }
+
+        public Token AddAncestor(Token ancestor) => 
+            new Token(Text, Type, Start, End,
+                Ancestor != null && Ancestor.Type == TokenType.Command && (Ancestor.Text == "begin" || Ancestor.Text == "end") ?
+                Ancestor.AddAncestor(ancestor) : ancestor);
+    }
+
+    public struct TextPosition
+    {
+        public string FileName { get; set; }
+        public int Line { get; set; }
+        public int Ch { get; set; }
+
+        public TextPosition(string fileName, int line, int ch)
+        {
+            FileName = fileName;
+            Line = line;
+            Ch = ch;
+        }
+
+        public static readonly TextPosition None = new TextPosition(null, -1, -1);
     }
 
     public enum TokenType
@@ -71,7 +107,8 @@ namespace Banana.Text
         Tilde,
         MathDelim,
         HtmlTag,
+        Bookmark,
         Reference,
-        Bookmark
+        Placeholder   // e.g. <:FILE:1.png>, to be replaced on request
     }
 }

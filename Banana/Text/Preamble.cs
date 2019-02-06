@@ -16,6 +16,7 @@ namespace Banana.Text
             "@@aedef",
             "@@alet",
             "@@asdef",
+            "@@block",
             "@@bmk",
             "@@char",
             "@@def",
@@ -25,6 +26,7 @@ namespace Banana.Text
             "@@edef",
             "@@edefa",
             "@@error",
+            "@@file",
             "@@get",
             "@@ifzero",
             "@@item",
@@ -94,10 +96,10 @@ namespace Banana.Text
                 preamble = reader.ReadToEnd();
 
             foreach (var env in MathJaxEnvironments)
-                preamble += $"\\adef\\begin\\@@bg {env}\\@@eg{{\\@ensuremath\\@u005cbegin{{{env}}}}}" +
-                    $"\\adef\\end\\@@bg {env}\\@@eg{{\\@u005cend{{{env}}}}}";
+                preamble += $"\\adef\\begin\\@@bg {env}\\@@eg{{\\@ensuremath\\@u005cbegin{{{env}}}}}\r\n" +
+                    $"\\adef\\end\\@@bg {env}\\@@eg{{\\@u005cend{{{env}}}}}\r\n";
             
-            var tokens = Expression.Parse(preamble);
+            var tokens = Expression.Parse(preamble, "preamble");
             var data = new ExpansionData();
             Expression.ExpandFinal(tokens, data);
             _commandDefinitions = data.Commands;

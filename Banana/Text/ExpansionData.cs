@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Banana.Text
 {
     public class ExpansionData
     {
-        public const int MaxMacros = 100000;
+        public const int MaxMacros = 10000;
 
         private int _expansionCount = 0;
         public int ExpansionCount
@@ -18,7 +20,7 @@ namespace Banana.Text
             {
                 _expansionCount = value;
                 if (_expansionCount >= MaxMacros)
-                    throw new TextException("Maximum times of macro expansion reached. Probably you have a dead loop.");
+                    throw TextException.MaxExpansionsExceeded(null, MaxMacros);
             }
         }
 
@@ -66,7 +68,7 @@ namespace Banana.Text
 
             // make global variables global
             foreach (var kvp in data.Variables)
-                if (kvp.Key.StartsWith("g."))
+                if (kvp.Key.StartsWith("g-"))
                     Variables[kvp.Key] = kvp.Value;
         }
 
@@ -79,8 +81,8 @@ namespace Banana.Text
         public double GetDouble(string key, double @default, bool erase)
             => Variables.GetDouble(key, @default, erase);
 
-        public string GetString(string key, string @default, bool erase)
-            => Variables.GetString(key, @default, erase);
+        public string GetString(string key, string @default, bool erase, string regex = null)
+            => Variables.GetString(key, @default, erase, regex);
     }
 
     public class CommandDictionary : IEnumerable<CommandDefinition>
@@ -197,12 +199,13 @@ namespace Banana.Text
             return @default;
         }
 
-        public string GetString(string key, string @default, bool erase)
+        public string GetString(string key, string @default, bool erase, string regex = null)
         {
             if (_dict.TryGetValue(key, out string s))
             {
                 if (erase) _dict.Remove(key);
-                return s;
+                if (regex == null || Regex.IsMatch(s, regex))
+                    return s;
             }
             return @default;
         }

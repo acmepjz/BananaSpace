@@ -13,7 +13,7 @@ namespace Banana.Text
     {
         // compiles tokens and returns html string
         // labels are used for \ref{} substituting
-        public static string ToHtml(string s, UserPage page, ParserOptions options, out ExpansionData data, IQueryable<UserLabel> labels = null)
+        public static string ToHtml(string s, UserPage page, ParserOptions options, out ExpansionData data)
         {
             if (string.IsNullOrWhiteSpace(s))
             {
@@ -21,7 +21,7 @@ namespace Banana.Text
                 return "";
             }
 
-            var tokens = Expression.Parse(s);
+            var tokens = Expression.Parse(s, "user");
             data = Preamble.GetInitialExpansionData();
 
             // add \@secnum
@@ -29,7 +29,7 @@ namespace Banana.Text
             if (!string.IsNullOrWhiteSpace(page.SectionNumber))
             {
                 foreach (char c in page.SectionNumber)
-                    secNum.Add(new Token(c.ToString(), TokenType.Text));
+                    secNum.Add(new Token(c.ToString(), TokenType.Text, TextPosition.None, TextPosition.None));
             }
             var cd = new CommandDefinition("@secnum")
             {
@@ -38,14 +38,29 @@ namespace Banana.Text
             };
             data.Commands[cd.Name] = cd;
 
-            Expression.ExpandSpecials(tokens, data);
-            tokens = Expression.ExpandFinal(tokens, data);
+            try
+            {
+                Expression.ExpandSpecials(tokens, data);
+                tokens = Expression.ExpandFinal(tokens, data);
 
-            return ToHtmlFinal(tokens, options, data, labels);
+                return ToHtmlFinal(tokens, options, data);
+            }
+            catch (TextException e)
+            {
+                if (options.HasFlag(ParserOptions.SingleLine))
+                    return "[错误]";
+                return "<p><strong>错误！</strong>代码没有通过编译。以下是错误信息。</p><pre class=\"error-message\">" + e.GetMessage() + "</pre>";
+            }
+            //catch (Exception e)
+            //{
+            //    if (options.HasFlag(ParserOptions.SingleLine))
+            //        return "[错误]";
+            //    return $"<p><strong>错误！</strong>{e.Message}</p>";
+            //}
         }
 
         // converts compiled tokens to html string
-        public static string ToHtmlFinal(List<Token> tokens, ParserOptions options, ExpansionData data = null, IQueryable<UserLabel> labels = null)
+        public static string ToHtmlFinal(List<Token> tokens, ParserOptions options, ExpansionData data = null)
         {
             string html = "";
             bool singleLine = options.HasFlag(ParserOptions.SingleLine);
@@ -63,10 +78,9 @@ namespace Banana.Text
                         if (last?.Type != TokenType.Whitespace)
                             html += " ";
                     }
-                    // disable html tags in verbatim output (i.e. math mode)
-                    else if (token.Type != TokenType.HtmlTag && token.Type != TokenType.Bookmark)
-                        // '[emoji]' gets encoded to '[emoji]\ufffd'
-                        html += HttpUtility.HtmlEncode(token.ToString()).Replace("\ufffd", "");
+                    // disable html tags etc. in verbatim output (i.e. math mode)
+                    else if (token.Type != TokenType.HtmlTag && token.Type != TokenType.Bookmark && token.Type != TokenType.Placeholder)
+                        html += HttpUtility.HtmlEncode(token.ToString());
                 }
                 else
                 {
@@ -108,7 +122,7 @@ namespace Banana.Text
                             if (token.Text == " ") // from '\ '
                                 html += "<span style=\"white-space:pre-wrap\"> </span>";
                             else
-                                html += HttpUtility.HtmlEncode(token.Text).Replace("\ufffd", "");
+                                html += HttpUtility.HtmlEncode(token.Text);
                             break;
                         case TokenType.Whitespace:
                             // ignore space after cjk punctuation
@@ -119,6 +133,7 @@ namespace Banana.Text
                                 html += " ";
                             break;
                         case TokenType.HtmlTag:
+                        case TokenType.Placeholder:
                             if (!singleLine)
                                 html += token.Text; // raw html
                             break;
@@ -148,6 +163,9 @@ namespace Banana.Text
                                     html += $"<a id=\"{bookmark.Label}\" class=\"bookmark\"></a>";
                             }
                             break;
+                        case TokenType.BeginGroup:
+                        case TokenType.EndGroup:
+                            break;
                         case TokenType.Reference:
                             bool flag = false;
                             foreach (var bookmark in data.Bookmarks)
@@ -160,16 +178,6 @@ namespace Banana.Text
                                 }
                             if (flag) break;
 
-                            if (labels != null)
-                            {
-                                var l = (from label in labels where label.Key == token.Text select label).FirstOrDefault();
-                                if (l != null)
-                                {
-                                    html += $"<a href=\"/page/{l.PageId}#{l.Key}\">{l.Content}</a>";
-                                    break;
-                                }
-                            }
-
                             if ((token.Text.StartsWith("http://") || token.Text.StartsWith("https://")) &&
                                 Uri.IsWellFormedUriString(token.Text, UriKind.Absolute))
                             {
@@ -177,11 +185,7 @@ namespace Banana.Text
                                 break;
                             }
 
-                            html += "<span style=\"color:red;font-weight:bold\">??</span>";
-
-                            break;
-                        case TokenType.BeginGroup:
-                        case TokenType.EndGroup:
+                            html += $"<:REF:{HttpUtility.HtmlEncode(token.Text)}>";
                             break;
                         default:
                             html += "<span style=\"color:red;font-weight:bold\">" + HttpUtility.HtmlEncode(token.ToString()) + "</span>";

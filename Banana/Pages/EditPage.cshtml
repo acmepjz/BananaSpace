@@ -1,74 +1,114 @@
 ﻿@page
 @model Banana.Pages.EditPageModel
 
-<div>
-    @if (Model.UserPage != null)
-    {
-        <div class="sidebar">
-            <div class="sidebar-container">
-                <p>
-                    This is a sidebar.
-                </p>
-            </div>
-        </div>
+<input id="_file-input" type="file" data-page-id="@Model.UserPage.Id" />
 
-        <div class="box page-body med-padding">
-            <h1 class="box-h1">
-                编辑: @Html.Raw(Model.UserPage.HtmlTitle)
-            </h1>
+<div class="editor-container">
+    <div class="box med-padding">
+        <h1 class="box-h1">
+            编辑: @Html.Raw(Model.UserPage.HtmlTitle)
+        </h1>
 
-            <form method="post">
-                <div asp-validation-summary="All" class="text-danger"></div>
-                <div class="form-group">
-                    <label asp-for="Input.Title"></label>
-                    <input asp-for="Input.Title" class="form-control textbox-code" autocomplete="off" />
-                    <span asp-validation-for="Input.Title" class="text-danger"></span>
+        <form method="post" data-page-id="@Model.UserPage.Id">
+            <div class="editor-form-content">
+                <div class="editor-tabs">
+                    <div class="editor-tab-link-active">
+                        <div class="editor-tab-link-container">
+                            <a class="editor-tab-link link-no-underline" href="#">代码</a>
+                        </div>
+                    </div>
+                    <div class="editor-tab-link-inactive">
+                        <div class="editor-tab-link-container">
+                            <a class="editor-tab-link link-no-underline" href="#">页面</a>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label asp-for="Input.Content"></label>
+                <div class="editor-tab-active">
                     <textarea asp-for="Input.Content" class="form-control textbox-code textarea-code" placeholder="@Model.ContentUIHint" spellcheck="false"></textarea>
-                    <span asp-validation-for="Input.Content" class="text-danger"></span>
                 </div>
 
-                <div class="form-group">
-                    <input type="submit" value="保存并预览" class="btn button-yellow leave-no-confirm" asp-route-id="@Model.UserPage.Id" />
-                    <div class="one-em-wide"></div>
-                    <input type="submit" value="发布" class="btn button-yellow leave-no-confirm" asp-route-id="@Model.UserPage.Id" asp-route-publish="true" />
-                    <div class="one-em-wide"></div>
-                    <a class="btn button-yellow" href="@(Model.UserPage.IsPublic ? "/page/" + Model.UserPage.Id : "/manage/" + Model.UserPage.CourseId)">返回</a>
+                <div class="editor-tab-inactive">
+                    <div class="editor-form-groups">
+                        <div class="form-group">
+                            <label asp-for="Input.Title"></label>
+                            <input asp-for="Input.Title" class="form-control textbox-code" autocomplete="off" />
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Input.SectionNumber"></label>
+                            <input asp-for="Input.SectionNumber" class="form-control textbox-code" autocomplete="off" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>上传附件</label>
+                            <div class="file-box">
+                                @{
+                                    var files = Model.UserPage.GetFileList();
+                                    int index = 0;
+
+                                    <div class="file-list" data-initial-count="@files.Count">
+                                        @foreach (var pair in files)
+                                        {
+                                            <div class="file-list-item" data-id="@(index++)">
+                                                <div class="file-list-item-name">@pair.Key</div>
+                                                <div class="file-progress-container"></div>
+                                                <div>
+                                                    <a class="file-delete-link" href="#">删除</a>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                <a class="file-upload-button" href="#">上传文件</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </form>
-
-        </div>
-
-        var _page = Model.DraftPage ?? Model.UserPage;
-        <div class="box page-body med-padding">
-            <h1>
-                @Html.Raw(_page.HtmlTitle)
-            </h1>
-            <hr />
-
-            <div class="user-page-content">
-                @Html.Raw(_page.HtmlContent)
             </div>
+
+            <div class="editor-form-buttons">
+                <a class="btn button-yellow leave-no-confirm editor-save-button">保存并预览</a>
+                <div class="one-em-wide"></div>
+                <a class="btn button-yellow leave-no-confirm editor-publish-button">发布</a>
+                <div class="one-em-wide"></div>
+                <a class="btn button-yellow" href="@(Model.UserPage.IsPublic ? "/page/" + Model.UserPage.Id : "/manage/" + Model.UserPage.CourseId)">返回</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="previewer-container">
+    <div class="box med-padding">
+        <h1 class="box-h1">
+            @Html.Raw(Model.PageTitle)
+        </h1>
+
+        <div class="user-page-content">
+            @Html.Raw(Model.PageContent)
         </div>
-    }
-    else
-    {
-        <partial name="_PageDoesNotExistPartial" />
-    }
+    </div>
+</div>
+
+<div class="dialog dialog-confirm" title="上传文件">
+    <div class="dialog-content med-padding"></div>
+    <hr />
+    <div class="dialog-button-row">
+        <button class="btn button-yellow dialog-button dialog-button-confirm">确定</button>
+        <div class="one-em-wide"></div>
+        <button class="btn button-yellow dialog-button">取消</button>
+    </div>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="~/lib/codemirror/lib/codemirror.js"></script>
     <script src="~/lib/codemirror/mode/tex.js" asp-append-version="true"></script>
-    <script src="~/lib/codemirror/addon/edit/matchbrackets.js"></script>
     <script src="~/lib/codemirror/addon/hint/show-hint.js"></script>
 }
 
 @section Stylesheets {
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="~/lib/codemirror/lib/codemirror.css" />
     <link rel="stylesheet" href="~/lib/codemirror/addon/hint/show-hint.css" />
 }

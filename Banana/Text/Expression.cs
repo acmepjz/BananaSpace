@@ -11,27 +11,40 @@ namespace Banana.Text
     public static class Expression
     {
         public const string SpecialChars = "0123456789`~!#$%^&*()-_=+[]{}\\|;:'\",.<>/?";
-        //ActiveChars = "~&",
-        //SymbolChars = "+-=|/<>*\u00ac\u00b7\u00d7\u2016\u2020\u2021\u2190\u2191\u2192\u2193\u2194\u2195\u2196\u2197\u2198\u2199\u21d0\u21d1\u21d2\u21d3\u21d4\u21d5\u2205\u2208\u220a\u220b\u220d\u2218\u2219\u221d\u221e\u2223\u2224\u2225\u2226\u2227\u2228\u2229\u222a\u223c\u223d\u224e\u224f\u2250\u2251\u2252\u2253\u2254\u2255\u2256\u2261\u2263\u2276\u2277\u227a\u227b\u227c\u227d\u2282\u2283\u228d\u228e\u228f\u2290\u2293\u2294\u2295\u2296\u2297\u2298\u2299\u229a\u229b\u229c\u229d\u229e\u229f\u22a0\u22a1\u22a2\u22a3\u22a4\u22a5\u22b0\u22b1\u22b2\u22b3\u22b4\u22b5\u22be\u22bf\u22c4\u22c6\u22c8\u22c9\u22ca\u22cb\u22cc\u22ce\u22cf\u22d0\u22d1\u2322\u2323\u2a7d\u2a7e";
 
         const int MaxBuffer = 1000000;
-        const string DefaultColor = "000000";
+        const string DefaultColor = "000000",
+            DefaultBlockBackground = "e8f6ff",
+            DefaultBlockBorder = "44bbee";
         const double DefaultFontSize = 18;
+        const string VariableNameRegex = @"^[\w\-]+$", ColorRegex = "^[0-9a-fA-F]{6}$";
 
-        public static List<Token> Parse(string s)
+        public static List<Token> Parse(string s, string fileName)
         {
             List<Token> tokens = new List<Token>();
             s = s.Replace("\r\n", "\n").Replace("\r", "\n");
             s += " ";
             string t = "";
             bool ignoreNextWhitespace = false;
+            int line = 0, lineStart = 0;
+
+            TextPosition pos(int i)
+                => new TextPosition(fileName, line, i - lineStart);
 
             for (int i = 0; i < s.Length - 1; i++)
             {
+                int _i = i;
+
                 if (char.IsWhiteSpace(s[i]))
                 {
-                    if (!ignoreNextWhitespace || s[i] == '\n')
-                        tokens.Add(new Token(s[i].ToString(), TokenType.Whitespace));
+                    if (s[i] == '\n')
+                    {
+                        tokens.Add(new Token("\n", TokenType.Whitespace, pos(i), pos(i + 1)));
+                        line++;
+                        lineStart = i + 1;
+                    }
+                    else if (!ignoreNextWhitespace)
+                        tokens.Add(new Token(s[i].ToString(), TokenType.Whitespace, pos(i), pos(i + 1)));
                     continue;
                 }
 
@@ -39,60 +52,62 @@ namespace Banana.Text
                 switch (s[i])
                 {
                     case '{':
-                        tokens.Add(new Token(null, TokenType.BeginGroup));
+                        tokens.Add(new Token(null, TokenType.BeginGroup, pos(_i), pos(i + 1)));
                         break;
                     case '}':
-                        tokens.Add(new Token(null, TokenType.EndGroup));
+                        tokens.Add(new Token(null, TokenType.EndGroup, pos(_i), pos(i + 1)));
                         break;
                     case '^':
-                        tokens.Add(new Token(null, TokenType.Superscript));
+                        tokens.Add(new Token(null, TokenType.Superscript, pos(_i), pos(i + 1)));
                         ignoreNextWhitespace = true;
                         break;
                     case '_':
-                        tokens.Add(new Token(null, TokenType.Subscript));
+                        tokens.Add(new Token(null, TokenType.Subscript, pos(_i), pos(i + 1)));
                         ignoreNextWhitespace = true;
                         break;
                     case '&':
-                        tokens.Add(new Token(null, TokenType.Tab));
+                        tokens.Add(new Token(null, TokenType.Tab, pos(_i), pos(i + 1)));
                         break;
                     case '%':
                         while (i < s.Length - 1 && s[i] != '\n') i++;
                         ignoreNextWhitespace = true;
+                        line++;
+                        lineStart = i + 1;
                         break;
                     case '~':
-                        tokens.Add(new Token(null, TokenType.Tilde));
+                        tokens.Add(new Token(null, TokenType.Tilde, pos(_i), pos(i + 1)));
                         break;
                     case '$':
                         if (s[i + 1] == '$')
                         {
-                            tokens.Add(new Token("$$", TokenType.MathDelim));
+                            tokens.Add(new Token("$$", TokenType.MathDelim, pos(_i), pos(i + 2)));
                             i++;
                             break;
                         }
-                        tokens.Add(new Token("$", TokenType.MathDelim));
+                        tokens.Add(new Token("$", TokenType.MathDelim, pos(_i), pos(i + 1)));
                         break;
                     case '\\':
                         i++;
                         if (s[i] == '\\')
                         {
-                            tokens.Add(new Token(null, TokenType.LineBreak));
+                            tokens.Add(new Token(null, TokenType.LineBreak, pos(_i), pos(i + 1)));
                             break;
                         }
                         if ("()[]".Contains(s[i]))
                         {
-                            tokens.Add(new Token("\\" + s[i], TokenType.MathDelim));
+                            tokens.Add(new Token("\\" + s[i], TokenType.MathDelim, pos(_i), pos(i + 1)));
                             break;
                         }
 
                         if (char.IsWhiteSpace(s[i]) || SpecialChars.Contains(s[i]))
-                            tokens.Add(new Token(s[i].ToString(), TokenType.Command));
+                            tokens.Add(new Token(s[i].ToString(), TokenType.Command, pos(_i), pos(i + 1)));
                         else
                         {
                             t = "";
                             while (!(char.IsWhiteSpace(s[i]) || SpecialChars.Contains(s[i])))
                                 t += s[i++];
                             i--;
-                            tokens.Add(new Token(t, TokenType.Command));
+                            tokens.Add(new Token(t, TokenType.Command, pos(_i), pos(i + 1)));
                             ignoreNextWhitespace = true;
                         }
                         break;
@@ -101,13 +116,16 @@ namespace Banana.Text
                         while (s[i] == '#')
                             t += s[i++];
                         t += s[i];
-                        tokens.Add(new Token(t, TokenType.Argument));
+                        tokens.Add(new Token(t, TokenType.Argument, pos(_i), pos(i + 1)));
                         break;
                     default:
                         if (char.IsSurrogatePair(s, i))
-                            tokens.Add(new Token(s.Substring(i, 2), TokenType.Text));
+                        {
+                            tokens.Add(new Token(s.Substring(i, 2), TokenType.Text, pos(_i), pos(i + 2)));
+                            i++;
+                        }
                         else
-                            tokens.Add(new Token(s[i].ToString(), TokenType.Text));
+                            tokens.Add(new Token(s[i].ToString(), TokenType.Text, pos(_i), pos(i + 1)));
                         break;
                 }
             }
@@ -124,7 +142,7 @@ namespace Banana.Text
                 if (tokens[i].Type == TokenType.EndGroup) nest--;
                 if (nest == 0) break;
             }
-            if (nest > 0) throw new Exception("There are unmatched {'s.");
+            if (nest > 0) throw TextException.UnmatchedBracket(tokens[start], "{");
             return i;
         }
 
@@ -189,21 +207,40 @@ namespace Banana.Text
                 if (token.Type == TokenType.HtmlTag)
                 {
                     if ((token.Text == "<span>" || token.Text.StartsWith("<span ")) &&
-                        result[i + 1].Type == TokenType.HtmlTag &&
-                        result[i + 1].Text == "</span>")
+                        ((result[i + 1].Type == TokenType.HtmlTag && result[i + 1].Text == "</span>") || // remove empty spans
+                        (result[i + 1].Type == TokenType.Whitespace && i + 3 < result.Count && result[i + 2].Type == TokenType.HtmlTag && // remove whitespace spans at end of a div
+                        result[i + 2].Text == "</span>" && result[i + 3].Type == TokenType.HtmlTag && result[i + 3].Text == "</div>")))
                     {
-                        result.RemoveRange(i, 2);
+                        result.RemoveRange(i, result[i + 1].Type == TokenType.Whitespace ? 3 : 2);
                         i -= 2;  // as in <div><span></span></div>
                         if (i < -1) i = -1;
                         continue;
                     }
-                    if ((token.Text == "<div>" || token.Text.StartsWith("<div ")) &&
-                        result[i + 1].Type == TokenType.HtmlTag &&
-                        result[i + 1].Text == "</div>")
+                    if (token.Text == "<div>" || token.Text.StartsWith("<div "))
                     {
-                        result.RemoveRange(i, 2);
-                        i -= 2;
-                        if (i < -1) i = -1;
+                        // remove empty divs
+                        bool flag = false;
+                        int depth = 1, j;
+                        for (j = i + 1; j < result.Count; j++)
+                        {
+                            var t = result[j];
+                            if (t.Type == TokenType.Whitespace ||
+                                (t.Type == TokenType.HtmlTag && (t.Text.StartsWith("<span") || t.Text.StartsWith("</span"))))
+                                continue;
+                            if (t.Type == TokenType.HtmlTag)
+                            {
+                                if (t.Text.StartsWith("<div")) { depth++; continue; }
+                                if (t.Text.StartsWith("</div")) { depth--; if (depth == 0) { flag = true; break; } continue; }
+                            }
+                            break;
+                        }
+
+                        if (flag)
+                        {
+                            result.RemoveRange(i, j - i + 1);
+                            i -= 2;
+                            if (i < -1) i = -1;
+                        }
                         continue;
                     }
                 }
@@ -225,7 +262,8 @@ namespace Banana.Text
             string name;
             List<Token> patTokens, defTokens;
 
-            bool isMathMode = data.GetBool("math-mode", false, false);
+            bool isMathMode = data.GetBool("math-mode", false, false),
+                isTextOnly = data.GetBool("-text-only", false, false);
 
             for (int i = 0; i < tokens.Count; i++)
             {
@@ -242,9 +280,7 @@ namespace Banana.Text
 
                         var cloned = data.PassToSubgroup();
                         result.Add(new Token(null, TokenType.BeginGroup));
-                        result.AddRange(Expand(
-                            tokens.GetRange(i + 1, groupEnd - i - 1),
-                            cloned));
+                        result.AddRange(Expand(tokens.GetRange(i + 1, groupEnd - i - 1), cloned));
                         data.UpdateFromSubgroup(cloned);
 
                         if (cloned.GetBool("style-changed", false, false))
@@ -260,7 +296,7 @@ namespace Banana.Text
                     case TokenType.EndGroup:
                         if (expandAfterPositions.Count > 0)
                             break;
-                        throw new Exception("Too many }'s.");
+                        throw TextException.UnmatchedBracket(t, "}");
 
                     case TokenType.Command:
                         string varName, varValue;
@@ -274,7 +310,7 @@ namespace Banana.Text
                                     continue;
                                 }
                                 else
-                                    throw new Exception("'\\@@ea' must be followed by two tokens.");
+                                    throw TextException.TokenExpected(t);
 
                             case "@@ne":
                                 if (i + 1 < tokens.Count)
@@ -284,12 +320,14 @@ namespace Banana.Text
                                     goto iterend;
                                 }
                                 else
-                                    throw new Exception("'\\@@ne' must be followed by a token.");
+                                    throw TextException.TokenExpected(t);
 
                             case "@@csname":
-                                string csName = ReadTextArgument(tokens, ref i, data, "@@csname", true);
+                                string csName = ReadTextArgument(tokens, ref i, data, t, true);
+                                if (csName == "")
+                                    throw TextException.EmptyCsName(t);
                                 tokens.RemoveRange(_i, i - _i + 1);
-                                tokens.Insert(_i, new Token(csName, TokenType.Command));
+                                tokens.Insert(_i, new Token(csName, TokenType.Command, t));
                                 i = _i - 1;
                                 goto iterend;
 
@@ -301,11 +339,13 @@ namespace Banana.Text
                             case "@@edefa":
                             case "@@aedef":
                                 i++;
-                                if (i == tokens.Count || tokens[i].Type != TokenType.Command)
-                                    throw new Exception($"'\\@@def' must be followed by a command, but it is followed by '{tokens[i]}'.");
+                                if (i == tokens.Count)
+                                    throw TextException.TokenExpected(t);
+                                if (tokens[i].Type != TokenType.Command)
+                                    throw TextException.InvalidMacroName(t, tokens[i].ToString());
                                 name = tokens[i].Text;
                                 if (Preamble.Predefined.Contains(name))
-                                    throw new Exception($"'\\{name}' is not a valid command name.");
+                                    throw TextException.InvalidMacroName(t, tokens[i].ToString());
 
                                 patTokens = new List<Token>();
                                 for (i++; i < tokens.Count && tokens[i].Type != TokenType.BeginGroup; i++)
@@ -325,25 +365,25 @@ namespace Banana.Text
                                         {
                                             int __i = i + 1;
                                             if (!MatchAndReplace(tokens, ref __i, command, data))
-                                                throw new Exception("\\@@ex: can't expand.");
+                                                throw TextException.NoMatchingDefinition(token);
                                         }
                                         else if (token.Text == "@@csname")
                                         {
                                             int __i = i + 1;
-                                            csName = ReadTextArgument(tokens, ref __i, data, "@@csname", true);
+                                            csName = ReadTextArgument(tokens, ref __i, data, token, true);
                                             tokens.RemoveRange(i, __i - i);
                                             tokens.Insert(i, new Token(csName, TokenType.Command));
                                         }
-                                        else if (Preamble.Predefined.Contains(token.Text))
+                                        else if (!Preamble.Predefined.Contains(token.Text))
                                         {
-                                            throw new Exception("'\\@@ex' cannot be followed by a primitive command other than '\\@@csname'.");
+                                            throw TextException.UndefinedCommand(token);
                                         }
                                     }
                                     else
                                         patTokens.Add(ReplaceBgEg(tokens[i]));
                                 }
 
-                                if (i == tokens.Count) throw new Exception("\\@@def: { expected.");
+                                if (i == tokens.Count) throw TextException.TokenExpected(t, "{");
                                 groupEnd = GetGroupEnd(tokens, i);
                                 defTokens = new List<Token>();
                                 var groupTokens = tokens.GetRange(i + 1, groupEnd - i - 1);
@@ -364,18 +404,18 @@ namespace Banana.Text
                                         {
                                             int __i = i + 1;
                                             if (!MatchAndReplace(groupTokens, ref __i, command, data))
-                                                throw new Exception("\\@@ex: can't expand.");
+                                                throw TextException.NoMatchingDefinition(token);
                                         }
                                         else if (token.Text == "@@csname")
                                         {
                                             int __i = i + 1;
-                                            csName = ReadTextArgument(groupTokens, ref __i, data, "@@csname", true);
+                                            csName = ReadTextArgument(groupTokens, ref __i, data, token, true);
                                             groupTokens.RemoveRange(i, __i - i);
                                             groupTokens.Insert(i, new Token(csName, TokenType.Command));
                                         }
-                                        else if (Preamble.Predefined.Contains(token.Text))
+                                        else if (!Preamble.Predefined.Contains(token.Text))
                                         {
-                                            throw new Exception("'\\@@ex' cannot be followed by a primitive command other than '\\@@csname'.");
+                                            throw TextException.UndefinedCommand(token);
                                         }
                                     }
                                     else
@@ -413,11 +453,13 @@ namespace Banana.Text
                             case "@@asdef":
                             case "@@sdefa":
                                 i++;
-                                if (i == tokens.Count || tokens[i].Type == TokenType.Argument)
-                                    throw new Exception("\\@@sdef: Token expected.");
+                                if (i == tokens.Count)
+                                    throw TextException.TokenExpected(t);
+                                if (tokens[i].Type == TokenType.Argument)
+                                    throw TextException.InvalidMacroName(t, tokens[i].ToString());
                                 Token tt = tokens[i];
                                 if (tt.Type == TokenType.Command && Preamble.Predefined.Contains(tt.Text))
-                                    throw new Exception($"'\\{tt.Text}' is not a valid command name.");
+                                    throw TextException.InvalidMacroName(t, tokens[i].ToString());
 
                                 i++;
                                 patTokens = new List<Token>();
@@ -433,7 +475,7 @@ namespace Banana.Text
                                         patTokens.Add(ReplaceBgEg(tokens[i++]));
                                 }
 
-                                if (i == tokens.Count) throw new Exception("\\@@sdef: { expected.");
+                                if (i == tokens.Count) throw TextException.TokenExpected(t, "{");
                                 groupEnd = GetGroupEnd(tokens, i);
                                 defTokens = new List<Token>();
                                 for (i++; i < groupEnd; i++)
@@ -483,11 +525,12 @@ namespace Banana.Text
                             case "@@leta":
                                 i++;
                                 if (!(i + 1 < tokens.Count && tokens[i].Type == TokenType.Command && tokens[i + 1].Type == TokenType.Command))
-                                    throw new Exception("'\\@@let' must be followed by two commands.");
+                                    throw TextException.TokenExpected(t);
                                 name = tokens[i].Text;
                                 if (Preamble.Predefined.Contains(name))
-                                    throw new Exception($"'\\{name}' is not a valid command name.");
-                                string name2 = tokens[i + 1].Text;
+                                    throw TextException.InvalidMacroName(t, tokens[i].ToString());
+                                var token2 = tokens[i + 1];
+                                string name2 = token2.Text;
 
                                 command = data.Commands[name];
                                 if (Preamble.Predefined.Contains(name2))
@@ -495,7 +538,7 @@ namespace Banana.Text
                                     command2 = new CommandDefinition(name2)
                                     {
                                         Patterns = { new List<Token>() },
-                                        Definitions = { new List<Token> { new Token(name2, TokenType.Command) } }
+                                        Definitions = { new List<Token> { new Token(name2, TokenType.Command, token2.Start, token2.End) } }
                                     };
                                 }
                                 else
@@ -530,14 +573,15 @@ namespace Banana.Text
                             #endregion
 
                             case "@@text":
-                                Token tokText = new Token(ReadTextArgument(tokens, ref i, data, "@@text", false), TokenType.Text);
+                                Token tokText = new Token(ReadTextArgument(tokens, ref i, data, t, false), TokenType.Text);
                                 tokens.RemoveRange(_i, i - _i + 1);
                                 tokens.Insert(_i, tokText);
                                 i = _i - 1;
                                 goto iterend;
 
                             case "@@char":
-                                if (int.TryParse(ReadTextArgument(tokens, ref i, data, "@@char", false),
+                                string charCode = ReadTextArgument(tokens, ref i, data, t, false);
+                                if (int.TryParse(charCode,
                                     System.Globalization.NumberStyles.HexNumber,
                                     System.Globalization.CultureInfo.InvariantCulture,
                                     out int theChar))
@@ -547,18 +591,18 @@ namespace Banana.Text
                                         tokChar = new Token(((char)theChar).ToString(), TokenType.Text);
                                     else if (theChar >= 0x10000 && theChar <= 0x10ffff)
                                         tokChar = new Token("" + ((char)(0xd800 + (theChar - 0x10000) / 0x400)) + ((char)(0xdc00 + theChar % 0x400)), TokenType.Text);
-                                    else throw new Exception("\\@@char: Invalid code.");
+                                    else throw TextException.InvalidCharCode(t, charCode);
 
                                     tokens.RemoveRange(_i, i - _i + 1);
                                     tokens.Insert(_i, tokChar);
                                     i = _i - 1;
                                 }
-                                else throw new Exception("\\@@char: Invalid code.");
+                                else throw TextException.InvalidCharCode(t, charCode);
                                 goto iterend;
 
                             case "@@get":
                                 int getOption = data.GetInt("get-format", 0, true);
-                                varName = ReadTextArgument(tokens, ref i, data, "@@get", true).Trim();
+                                varName = ReadTextArgument(tokens, ref i, data, t, true).Trim();
                                 string value = data.Variables[varName];
                                 if (value != null)
                                 {
@@ -628,9 +672,9 @@ namespace Banana.Text
                                 continue;
 
                             case "@@set":
-                                varName = ReadTextArgument(tokens, ref i, data, "@@set", true).Trim();
-                                if (varName.Contains(',')) throw new Exception("\\@@set: name must not contain ','.");
-                                varValue = ReadTextArgument(tokens, ref i, data, "@@set", true);
+                                varName = ReadTextArgument(tokens, ref i, data, t, true);
+                                if (!Regex.IsMatch(varName, VariableNameRegex)) throw TextException.InvalidVariableName(t, varName);
+                                varValue = ReadTextArgument(tokens, ref i, data, t, true).Trim();
                                 data.Variables[varName] = varValue;
                                 tokens.RemoveRange(_i, i - _i + 1);
                                 i = _i - 1;
@@ -649,9 +693,9 @@ namespace Banana.Text
                                 continue;
 
                             case "@@add":
-                                varName = ReadTextArgument(tokens, ref i, data, "@@add", true).Trim();
-                                if (varName.Contains(',')) throw new Exception("\\@@add: name must not contain ','.");
-                                varValue = ReadTextArgument(tokens, ref i, data, "@@add", true);
+                                varName = ReadTextArgument(tokens, ref i, data, t, true).Trim();
+                                if (!Regex.IsMatch(varName, VariableNameRegex)) throw TextException.InvalidVariableName(t, varName);
+                                varValue = ReadTextArgument(tokens, ref i, data, t, true);
                                 int intValue = data.GetInt(varName, 0, false),
                                     addValue = 0;
                                 varValue = varValue.Replace("--", ""); // as in {-{key}}
@@ -662,7 +706,7 @@ namespace Banana.Text
                                 continue;
 
                             case "@@ifzero":
-                                IfZero(tokens, ref i, data);
+                                IfZero(tokens, ref i, t, data);
                                 data.ExpansionCount++;
                                 continue;
 
@@ -674,7 +718,7 @@ namespace Banana.Text
                                 continue;
 
                             case "@@list":
-                                var content = ReadArgument(tokens, ref i, "@@list");
+                                var content = ReadArgument(tokens, ref i, t);
                                 cloned = data.PassToSubgroup();
                                 cloned.Variables["is-first-item"] = "1";
                                 content = Expand(content, cloned);
@@ -712,7 +756,7 @@ namespace Banana.Text
 
                                 bool isFirstItem = data.GetBool("is-first-item", false, true);
 
-                                content = Parse("\\@itemlabel");
+                                content = Parse("\\@itemlabel", null);
                                 cloned = data.PassToSubgroup();
                                 content = Expand(content, cloned);
                                 data.UpdateFromSubgroup(cloned);
@@ -737,6 +781,28 @@ namespace Banana.Text
                                 result.Add(GetSpanTag(data));
                                 continue;
 
+                            case "@@block":
+                                var blockBackground = data.GetString("block-background-color", DefaultBlockBackground, true, ColorRegex).ToLower();
+                                var blockBorder = data.GetString("block-border-color", DefaultBlockBorder, true, ColorRegex).ToLower();
+
+                                content = ReadArgument(tokens, ref i, t);
+                                cloned = data.PassToSubgroup();
+                                content = Expand(content, cloned);
+                                data.UpdateFromSubgroup(cloned);
+
+                                result.Add(new Token("</span>", TokenType.HtmlTag));
+                                result.Add(new Token("</div>", TokenType.HtmlTag));
+                                result.Add(new Token($"<div class=\"block-paragraph\" style=\"background-color:#{blockBackground};border-color:#{blockBorder}\">", TokenType.HtmlTag));
+                                result.Add(GetPTag(data));
+                                result.Add(GetSpanTag(data));
+                                result.AddRange(content);
+                                result.Add(new Token("</span>", TokenType.HtmlTag));
+                                result.Add(new Token("</div>", TokenType.HtmlTag));
+                                result.Add(new Token("</div>", TokenType.HtmlTag));
+                                result.Add(GetPTag(data));
+                                result.Add(GetSpanTag(data));
+                                continue;
+
                             case "@@bmk":
                                 int bmkId = data.BookmarkCount++;
                                 result.Add(new Token(bmkId.ToString(), TokenType.Bookmark));
@@ -744,21 +810,18 @@ namespace Banana.Text
 
                             case "@@ref":
                                 if (isMathMode)
-                                    throw new Exception("\\@@ref: cannot use in math mode.");
-
-                                var argument = ReadTextArgument(tokens, ref i, data, "@@ref", true).Trim();
+                                    throw TextException.InvalidRefInMathMode(t);
+                                var argument = ReadTextArgument(tokens, ref i, data, t, true).Trim();
                                 result.Add(new Token(argument, TokenType.Reference));
                                 continue;
 
                             case "@@label":
-                                argument = ReadTextArgument(tokens, ref i, data, "@@label", true).Trim();
-                                if (data.BookmarkCount == 0)
-                                    throw new Exception("\\@@label: no bookmarks found.");
-                                if (!Regex.IsMatch(argument, "^[\\w\\-:]+$"))
-                                    throw new Exception("\\@@label: invalid label name.");
+                                argument = ReadTextArgument(tokens, ref i, data, t, true).Trim();
+                                if (!Regex.IsMatch(argument, VariableNameRegex))
+                                    throw TextException.InvalidLabelName(t, argument);
 
                                 cloned = data.PassToSubgroup();
-                                content = Expand(Parse("\\@currentlabel"), cloned);
+                                content = Expand(Parse("\\@currentlabel", null), cloned);
                                 data.UpdateFromSubgroup(cloned);
 
                                 data.Bookmarks.Add(new Bookmark
@@ -769,16 +832,23 @@ namespace Banana.Text
                                 });
                                 continue;
 
+                            case "@@file":
+                                argument = ReadTextArgument(tokens, ref i, data, t, true).Trim();
+                                result.Add(new Token($"<:FILE:{HttpUtility.HtmlEncode(argument)}>", TokenType.Placeholder));
+                                continue;
+
                             case "@@error":
-                                argument = ReadTextArgument(tokens, ref i, data, "@@error", true).Trim();
-                                throw new TextException(argument);
+                                argument = ReadTextArgument(tokens, ref i, data, t, true).Trim();
+                                throw TextException.CustomMessage(t, argument);
                         }
 
                         command = data.Commands[t.Text];
                         if (command == null)
                         {
-                            // throw new Exception($"Undefined command '\\{t.Text}'");
-                            result.Add(t);
+                            if (!isMathMode)
+                                throw TextException.UndefinedCommand(t);
+                            else
+                                result.Add(t);
                         }
                         else
                         {
@@ -789,7 +859,7 @@ namespace Banana.Text
                             }
 
                             if (!MatchAndReplace(tokens, ref i, command, data))
-                                throw new Exception($"The use of the command '\\{t.Text}' does not match any of its definitions.");
+                                throw TextException.NoMatchingDefinition(t);
 
                             data.ExpansionCount++;
                         }
@@ -817,7 +887,7 @@ namespace Banana.Text
                             // equation tags etc.
                             if (t.Text == "$$" || t.Text == "\\[")
                             {
-                                var newTokens = Parse("\\@@par\\floatleft{\\rm\\@beforedisplay}\\floatright{\\@afterdisplay}\\def\\@beforedisplay{}\\def\\@afterdisplay{}");
+                                var newTokens = Parse("\\@@par\\floatleft{\\rm\\@beforedisplay}\\floatright{\\@afterdisplay}\\@@def\\@beforedisplay{}\\@@def\\@afterdisplay{}", null);
                                 var cloned2 = data.PassToSubgroup();
                                 newTokens = Expand(newTokens, cloned2);
                                 data.UpdateFromSubgroup(cloned2);
@@ -879,7 +949,7 @@ namespace Banana.Text
                         if (isMathMode)
                             result.Add(t);
                         else
-                            throw new Exception($"Unexpected token '{t.ToString()}'");
+                            throw TextException.UnexpectedToken(t);
                         break;
                 }
 
@@ -888,6 +958,8 @@ namespace Banana.Text
                     i = expandAfterPositions.Pop() - 1;
             }
 
+            if (isTextOnly)
+                result = result.Where(token => token.Type != TokenType.HtmlTag).ToList();
             return result;
         }
 
@@ -935,8 +1007,10 @@ namespace Banana.Text
                     if (j == patt.Count) break; // match completed
 
                     j++; // NOW J IS THE NEXT TOKEN OF #N
+                    if (j == patt.Count - 1 && patt[j].Type == TokenType.Tilde)
+                        j++; // TILDE AT END OF PATTERN IS IGNORED
                     int nest = 0;
-                    if (j == patt.Count || patt[j].Type != TokenType.Tilde) // NO SEPARATOR AFTER THE PARAM, I.E. \FOO#1#2 OR \FOO#1
+                    if (j == patt.Count || patt[j].Type != TokenType.Tilde) // SHORT PARAM (WITHOUT TILDE)
                     {
                         // READ ONE TOKEN OR GROUP
                         while (_i < tokens.Count && tokens[_i].Type == TokenType.Whitespace) _i++;
@@ -1038,16 +1112,16 @@ namespace Banana.Text
                 for (int kk = argStartIndices[k]; kk < argEndIndices[k]; kk++) matchedParam.Add(tokens[kk]);
                 paramList.Add(matchedParam);
             }
-            tokens.RemoveRange(i, _i - i);
 
             List<Token> pattern = patterns[matchedDef], definition = definitions[matchedDef],
                 ttokens = new List<Token>();
 
+            var ancestor = tokens[i];
             for (j = 0; j < definition.Count; j++)
             {
                 if (definition[j].Type != TokenType.Argument)
                 {
-                    ttokens.Add(definition[j]);
+                    ttokens.Add(definition[j].AddAncestor(ancestor));
                 }
                 else
                 {
@@ -1060,16 +1134,20 @@ namespace Banana.Text
                             jj++;
                     }
                     if (jjj == pattern.Count) // DON'T throw an exception since there may be nested defs.
-                        ttokens.Add(definition[j]);
+                        ttokens.Add(definition[j].AddAncestor(ancestor));
                     else
                         for (int k = 0; k < paramList[jj].Count; k++)
-                            ttokens.Add(paramList[jj][k]);
+                            ttokens.Add(paramList[jj][k].AddAncestor(ancestor));
                 }
             }
             ExpandSpecials(ttokens, data);
+            var token = tokens[i];
+            tokens.RemoveRange(i, _i - i);
             tokens.InsertRange(i, ttokens);
 
             i = i - 1;
+            if (tokens.Count > MaxBuffer)
+                throw TextException.MaxBufferExceeded(token, MaxBuffer);
             return true;
         }
 
@@ -1077,18 +1155,17 @@ namespace Banana.Text
         {
             if (t.Type == TokenType.Command)
             {
-                if (t.Text == "@@bg") return new Token(null, TokenType.BeginGroup);
-                if (t.Text == "@@eg") return new Token(null, TokenType.EndGroup);
+                if (t.Text == "@@bg") return new Token(null, TokenType.BeginGroup, t);
+                if (t.Text == "@@eg") return new Token(null, TokenType.EndGroup, t);
             }
             return t;
         }
 
-        static List<Token> ReadArgument(List<Token> tokens, ref int i, string commandName) // i should be at the command, or the end of the last argument. It will be set to the end of the current argument.
+        static List<Token> ReadArgument(List<Token> tokens, ref int i, Token t) // i should be at the command, or the end of the last argument. It will be set to the end of the current argument.
         {
             i++;
             while (i < tokens.Count && tokens[i].Type == TokenType.Whitespace) i++;
-            if (i == tokens.Count) throw commandName == null ? new Exception("'^' or '_' does not get enough arguments.") :
-                    new Exception($"'\\{commandName}' does not get enough arguments.");
+            if (i == tokens.Count) throw TextException.NoMatchingDefinition(t);
             switch (tokens[i].Type)
             {
                 case TokenType.BeginGroup:
@@ -1116,17 +1193,17 @@ namespace Banana.Text
             }
 
             if (nest > 0 || tokens[ii].Text != expected)
-                throw new Exception($"'{start.Text}' is unmatched.");
+                throw TextException.UnmatchedBracket(start, start.Text);
             int _i = i;
             i = ii;
             return tokens.GetRange(_i + 1, ii - _i - 1);
         }
 
-        static string ReadTextArgument(List<Token> tokens, ref int i, ExpansionData data, string commandName, bool replaceValue)
+        static string ReadTextArgument(List<Token> tokens, ref int i, ExpansionData data, Token tok, bool replaceValue)
         {
             i++;
             while (i < tokens.Count && tokens[i].Type == TokenType.Whitespace) i++;
-            if (i == tokens.Count) throw new Exception($"'\\{commandName}' does not get enough arguments.");
+            if (i == tokens.Count) throw TextException.NoMatchingDefinition(tok);
             string ss, t = null;
             switch (tokens[i].Type)
             {
@@ -1138,7 +1215,8 @@ namespace Banana.Text
                     List<Token> ttokens = tokens.GetRange(i + 1, ii - i - 1);
 
                     var cloned = data.PassToSubgroup();
-                    Expand(ttokens, cloned);
+                    cloned.Variables["-text-only"] = "1";
+                    ttokens = Expand(ttokens, cloned);
                     data.UpdateFromSubgroup(cloned);
 
                     for (int iii = 0; iii < ttokens.Count; iii++)
@@ -1148,7 +1226,7 @@ namespace Banana.Text
                             case TokenType.BeginGroup:
                                 if (!replaceValue) break;
                                 int iiii = iii - 1;
-                                ss = ReadTextArgument(ttokens, ref iiii, data, commandName, true);
+                                ss = ReadTextArgument(ttokens, ref iiii, data, tok, true);
                                 t = data.Variables[ss];
                                 if (t != null)
                                 {
@@ -1167,23 +1245,23 @@ namespace Banana.Text
                                 s += ttokens[iii].Text;
                                 break;
                             default:
-                                throw new Exception($"Argument of '\\{commandName}' is not a plain string.");
+                                throw TextException.PlainStringExpected(tok);
                         }
                     }
                     i = ii;
                     return s;
 
                 default:
-                    throw new Exception($"Argument of '\\{commandName}' is not a plain string.");
+                    throw TextException.PlainStringExpected(tok);
             }
         }
 
-        static void IfZero(List<Token> tokens, ref int i, ExpansionData data)
+        static void IfZero(List<Token> tokens, ref int i, Token t, ExpansionData data)
         {
             int _i = i;
-            string varName = ReadTextArgument(tokens, ref i, data, "@@ifzero", true);
-            List<Token> lt1 = ReadArgument(tokens, ref i, "@@ifzero"),
-                lt2 = ReadArgument(tokens, ref i, "@@ifzero");
+            string varName = ReadTextArgument(tokens, ref i, data, tokens[i], true);
+            List<Token> lt1 = ReadArgument(tokens, ref i, t),
+                lt2 = ReadArgument(tokens, ref i, t);
 
             tokens.RemoveRange(_i, i - _i + 1);
             if (data.GetInt(varName, 1, false) == 0)
@@ -1208,8 +1286,8 @@ namespace Banana.Text
             var styles = new List<string>();
 
             double fontSize = data.GetDouble("font-size", DefaultFontSize, false);
-            string color = data.GetString("color", DefaultColor, false),
-                _float = data.GetString("float", null, false);
+            string color = data.GetString("color", DefaultColor, false, ColorRegex),
+                _float = data.GetString("float", null, false, "^(left|right)$");
             bool bold = data.GetBool("bold", false, false),
                 italic = data.GetBool("italic", false, false);
 
@@ -1220,16 +1298,12 @@ namespace Banana.Text
                 styles.Add($"font-size: {fontSize}px");
             }
             if (color != DefaultColor)
-            {
-                color = color.ToLower();
-                if (Regex.IsMatch(color, "^[0-9a-f]{6}$"))
-                    styles.Add($"color: #{color}");
-            }
+                styles.Add($"color: #{color}");
             if (bold)
                 styles.Add("font-weight: bold");
             if (italic)
                 styles.Add("font-style: italic");
-            if (_float == "right" || _float == "left")
+            if (_float != null)
                 styles.Add($"float: {_float}");
 
             if (styles.Count == 0)
@@ -1241,7 +1315,7 @@ namespace Banana.Text
             return new Token($"<span style=\"{s}\">", TokenType.HtmlTag);
         }
 
-        static Token GetPTag(ExpansionData data, string name = "div")
+        static Token GetPTag(ExpansionData data, string name = "div", string _class = "paragraph")
         {
             var styles = new List<string>();
 
@@ -1255,12 +1329,12 @@ namespace Banana.Text
             }
 
             if (styles.Count == 0)
-                return new Token($"<{name} class=\"paragraph\">", TokenType.HtmlTag);
+                return new Token($"<{name} class=\"{_class}\">", TokenType.HtmlTag);
             string s = "";
             foreach (var style in styles)
                 s += style + "; ";
             s = s.Substring(0, s.Length - 2);
-            return new Token($"<{name} class=\"paragraph\" style=\"{s}\">", TokenType.HtmlTag);
+            return new Token($"<{name} class=\"{_class}\" style=\"{s}\">", TokenType.HtmlTag);
         }
 
         private static readonly string[] RomanThousands =

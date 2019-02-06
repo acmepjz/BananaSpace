@@ -14,6 +14,8 @@ namespace Banana.Pages
         public UserCourse UserCourse { get; set; }
         public IEnumerable<UserPage> AllPagesInCourse { get; set; }
         public bool IsCreatorOrAdmin { get; set; }
+        public string PageTitle { get; set; }
+        public string PageContent { get; set; }
 
         private UserPageManager _pageManager { get; set; }
 
@@ -30,6 +32,8 @@ namespace Banana.Pages
                 if (UserPage == null)
                     return NotFound();
 
+                PageTitle = UserPage.HtmlTitle;
+                PageContent = UserPage.GetFinalHtml(_pageManager);
                 UserCourse = _pageManager.GetCourse(UserPage.CourseId);
                 AllPagesInCourse = _pageManager.GetAllPages(UserPage.CourseId);
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +9,11 @@ namespace Banana.Data
 {
     public class UserPageManager : DbContext
     {
-        public UserPageManager(DbContextOptions<UserPageManager> options) : base(options)
+        private UserFileManager _fileManager;
+
+        public UserPageManager(DbContextOptions<UserPageManager> options, UserFileManager fileManager) : base(options)
         {
+            _fileManager = fileManager;
         }
 
         private DbSet<UserPage> Pages { get; set; }
@@ -93,6 +97,11 @@ namespace Banana.Data
             return (from role in UserRole
                     where role.UserName == userName && role.RoleId == "Administrator"
                     select role).Any();
+        }
+
+        public bool UserCanEdit(string userName, UserPage page)
+        {
+            return GetCourse(page.CourseId).Creator == userName || UserIsAdmin(userName);
         }
 
         public void NewCourseRequest(string title, string type, string userName)
@@ -204,6 +213,57 @@ namespace Banana.Data
             return from label in Labels
                    where label.CourseId == courseId
                    select label;
+        }
+
+        public bool AddFile(UserPage page, IFormFile file)
+        {
+            string name = _fileManager.AddFile(page.Id, file);
+
+            if (name == null)
+                return false;
+
+            Update(page);
+            var files = page.GetFileList();
+            if (files.ContainsKey(file.FileName))
+            {
+                if (!_fileManager.DeleteFile(page.Id, files[file.FileName]))
+                    return false;
+                files.Remove(file.FileName);
+            }
+            files.Add(file.FileName, name);
+            page.SaveFilesString(files);
+            SaveChanges();
+            return true;
+        }
+
+        // returns false if file is not found
+        // returns null if file operation failed
+        public bool? DeleteFile(UserPage page, string fileName)
+        {
+            if (fileName == null)
+                return false;
+
+            var files = page.GetFileList();
+            if (!files.TryGetValue(fileName, out string name))
+                return false;
+
+            if (!_fileManager.DeleteFile(page.Id, name))
+                return null;
+
+            Update(page);
+            files.Remove(fileName);
+            page.SaveFilesString(files);
+            SaveChanges();
+            return true;
+        }
+
+        public string GetFileUrl(UserPage page, string fileName)
+        {
+            var dict = page.GetFileList();
+            if (dict.TryGetValue(fileName, out string result))
+                return $"~/uploads/{page.Id}/{result}";
+            else
+                return null;
         }
     }
 }

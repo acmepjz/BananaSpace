@@ -165,6 +165,11 @@ h2 {
         color: #000;
     }
 
+    .button-yellow[disabled] {
+        background-color: #e8e8e8;
+        color: gray;
+    }
+
 .button-red {
     background-color: #e00;
     border-radius: 0;
@@ -404,7 +409,7 @@ h2 {
 .user-page-content {
     font-size: 18px;
     text-align: justify;
-    line-height: 1.5;
+    line-height: 1.6;
     color: black;
 }
 
@@ -437,13 +442,140 @@ h2 {
     resize: none;
 }
 
+pre.error-message {
+    font-size: 14px;
+    font-family: 'DejaVu Sans Mono', 'Microsoft YaHei', monospace;
+    border-width: 0 0 0 5px;
+    border-color: #f44;
+    border-radius: 0;
+    padding: 10px 20px;
+    background-color: #fff2f2;
+    color: #f22;
+    white-space: pre-wrap;
+    overflow-x: hidden;
+}
+
+.container-wide {
+    width: 100%;
+}
+
+.editor-container {
+    width: 50%;
+    width: calc(50% - 10px);
+    position: fixed;
+}
+
+    .editor-container .box {
+        margin: 10px;
+        min-height: 200px;
+        height: calc(100vh - 145px);
+        display: flex;
+        flex-direction: column;
+    }
+
+        .editor-container .box h1 {
+            margin-bottom: 30px;
+        }
+
+        .editor-container .box form {
+            flex-grow: 1;
+            flex-shrink: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+.previewer-container {
+    width: 50%;
+    width: calc(50% - 10px);
+    float: right;
+}
+
+    .previewer-container .box {
+        margin: 10px;
+        min-height: calc(100vh - 145px);
+        overflow-x: hidden;
+    }
+
+.editor-form-content {
+    flex-grow: 1;
+    display: flex;
+    align-items: stretch;
+    margin-bottom: 20px;
+    /* IE and Edge bug: leaving 'height: auto' as default will cause CodeMirror to expand below page bottom */
+    height: 0;
+}
+
+.editor-tab-active {
+    flex-grow: 1;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.editor-tab-inactive {
+    display: none;
+}
+
+.editor-tabs {
+    flex-shrink: 0;
+    width: 1.6em;
+    border-right: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.editor-tab-link-container {
+    width: 3.5em;
+    height: 1.6em;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-bottom: .2em;
+}
+
+.editor-tab-link {
+    color: #000;
+}
+
+    .editor-tab-link:hover {
+        color: #000;
+    }
+
+.editor-tab-link-active {
+    transform: rotate(90deg);
+    background-color: #fee630;
+    margin: 1em 0 1.2em 0;
+}
+
+.editor-tab-link-inactive {
+    transform: rotate(90deg);
+    background-color: #e8e8e8;
+    margin: 1em 0 1.2em 0;
+}
+
+.editor-form-groups {
+    margin-left: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+    .editor-form-groups > .form-group:last-child {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
 /* CodeMirror */
 
-.CodeMirror {
-    border: 1px solid #ccc;
-    height: auto;
+.CodeMirror, .textarea-code {
     font-family: 'DejaVu Sans Mono', 'Microsoft YaHei', monospace;
     font-size: 14px;
+    min-height: 300px;
+    height: 100%;
+    flex-grow: 1;
 }
 
     .CodeMirror pre {
@@ -458,7 +590,7 @@ h2 {
     background: #d8e8f8;
 }
 
-.CodeMirror-lines, .textarea-code {
+.CodeMirror-lines {
     min-height: 300px;
 }
 
@@ -472,9 +604,10 @@ h2 {
 
 .CodeMirror-gutters {
     font-size: 12px;
-    border-right: none;
+    background-color: inherit;
     padding-left: 10px;
     padding-right: 5px;
+    border-right: 1px solid #eee;
 }
 
 .CodeMirror-linenumber {
@@ -488,12 +621,21 @@ h2 {
 }
 
 .CodeMirror-matchingbracket {
-    color: #080 !important;
-    background-color: #cec;
+    color: inherit !important;
+    background-color: #fe9;
 }
 
 .CodeMirror-nonmatchingbracket {
-    color: #aaa !important;
+    color: inherit !important;
+}
+
+.CodeMirror-matchingtag {
+    background-color: #fff8c8;
+    padding: 1px 0;
+}
+
+.CodeMirror-nonmatchingtag {
+    background-color: #fee;
 }
 
 .CodeMirror-hints {
@@ -511,15 +653,69 @@ h2 {
 }
 
 .cm-special, .cm-command {
-    color: #18c;
+    color: #19c;
 }
 
 .cm-environment, .cm-label, .cm-argument {
-    color: #c44 !important;
+    color: #d85;
 }
 
 .cm-comment {
-    color: #bcb !important;
+    color: #bbb !important;
+}
+
+/* Files */
+
+#_file-input {
+    position: fixed;
+    margin-top: -100em;
+    opacity: 0;
+}
+
+.file-box {
+    background-color: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.file-list-item {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+}
+
+.file-list-item-name {
+    font-weight: bold;
+    width: 25%;
+    overflow-x: hidden;
+    text-wrap: none;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.file-progress-container {
+    flex-grow: 1;
+    margin-left: 20px;
+}
+
+.file-progress {
+    width: 100%;
+    height: 7px;
+    background-color: #ecece4;
+    overflow-y: hidden;
+}
+
+.file-progress-inner {
+    height: 7px;
+    color: #f8d800;
+    background-color: #f8d800;
+}
+
+.file-progress-inner::before {
+    content: ".";
 }
 
 /* Others */
@@ -541,17 +737,37 @@ h2 {
     margin-left: .25em;
     width: 2em;
     flex-shrink: 0;
+    flex-grow: 0;
+}
+
+.enum-item-content {
+    flex-grow: 1;
 }
 
 .paragraph {
     margin-bottom: 18px;
 }
 
+.block-paragraph {
+    margin-bottom: 18px;
+    border-style: solid;
+    border-width: 0 0 0 5px;
+    padding: 12px 20px 14px 20px;
+}
+
 .enum-item:last-child > .enum-item-label > .paragraph:last-child,
-.enum-item:last-child > .enum-item-content > .paragraph:last-child {
+.enum-item:last-child > .enum-item-content > .paragraph:last-child,
+.block-paragraph > .paragraph:last-child {
     display: inline;
     display: contents;
 }
+
+    .enum-item:last-child > .enum-item-content > .paragraph:last-child .MJXp-display,
+    .enum-item:last-child > .enum-item-content > .paragraph:last-child .MathJax_Display,
+    .block-paragraph > .paragraph:last-child > span:last-child .MJXp-display,
+    .block-paragraph > .paragraph:last-child > span:last-child .MathJax_Display {
+        margin-bottom: 6px;
+    }
 
 .bookmark {
     width: 1px;

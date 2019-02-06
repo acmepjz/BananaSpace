@@ -73,11 +73,11 @@
     <div class="page-body">
         <div class="box med-padding med-margin-right">
             <h1 class="box-h1">
-                @(Model.UserPage.SectionNumber == null ? "" : Model.UserPage.SectionNumber + ". ")@Html.Raw(Model.UserPage.HtmlTitle)
+                @(Model.UserPage.SectionNumber == null ? "" : Model.UserPage.SectionNumber + ". ")@Html.Raw(Model.PageTitle)
             </h1>
 
             <div class="user-page-content">
-                @Html.Raw(Model.UserPage.HtmlContent)
+                @Html.Raw(Model.PageContent)
             </div>
         </div>
     </div>

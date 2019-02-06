@@ -19,11 +19,11 @@
     </environment>
 
     <script type="text/x-mathjax-config">
+        @* fix 2.7.5 bold-italic mapping issue *@
+        MathJax.Hub.Register.StartupHook("HTML-CSS Jax Ready", function () { var HTMLCSS = MathJax.OutputJax["HTML-CSS"]; HTMLCSS.Augment({FONTDATA: {VARIANT: {'bold-italic': {offsetA: 0x1D468}}}}); });
+        MathJax.Hub.Register.StartupHook("SVG Jax Ready", function () { var SVG = MathJax.OutputJax.SVG; SVG.Augment({FONTDATA: {VARIANT: {'bold-italic': {offsetA: 0x1D468}}}}); });
         MathJax.Hub.Config({
             showProcessingMessages: false,
-            TeX: {
-                extensions: ["mediawiki-texvc.js"]
-            },
             tex2jax: {
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
                 displayMath: [['$$', '$$'], ['\\[', '\\]']],
@@ -44,17 +44,18 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </head>
 <body>
+    @{ bool wideLayout = Context.Request.Path == "/EditPage"; }
     <nav class="navbar navbar-fixed-top header-navbar">
-        <div class="container">
+        <div class="container@(wideLayout ? " container-wide" : "")">
             <partial name="_HeaderPartial" model="null" />
         </div>
     </nav>
 
-    <div class="container">
+    <div class="container@(wideLayout ? " container-wide" : "")">
         @RenderBody()
     </div>
 
-    <footer>
+    <footer style="@(wideLayout ? "position:fixed" : "")">
         <div class="footer"><div class="copyleft">&copy;</div><span>&nbsp;Copyleft @DateTime.Now.Year - Banana Space - All rights reversed.</span></div>
     </footer>
 

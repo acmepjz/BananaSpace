@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Banana.Data;
 using Banana.Text;
+using Microsoft.AspNetCore.Html;
 
 namespace Banana.Pages
 {
@@ -48,6 +49,8 @@ namespace Banana.Pages
         public UserPage DraftPage { get; set; }
         public UserCourse UserCourse { get; set; }
         public IEnumerable<UserPage> AllPagesInCourse { get; set; }
+        public string PageTitle { get; set; }
+        public string PageContent { get; set; }
 
         public void OnGet(string id = null)
         {
@@ -63,6 +66,8 @@ namespace Banana.Pages
                 AllPagesInCourse = _pageManager.GetAllPages(UserPage.CourseId);
 
                 var page = DraftPage ?? UserPage;
+                PageTitle = page.Title;
+                PageContent = page.GetFinalHtml(_pageManager);
                 Input = new InputModel
                 {
                     Title = page.Title,
@@ -81,7 +86,7 @@ namespace Banana.Pages
 
             var labels = _pageManager.GetAllLabels(page.CourseId);
             page.Content = Input.Content;
-            page.HtmlContent = Parser.ToHtml(Input.Content, page, ParserOptions.Default, out data, labels);
+            page.HtmlContent = Parser.ToHtml(Input.Content, page, ParserOptions.Default, out data);
         }
 
         private void UpdateLabels(UserPage page, ExpansionData data)
@@ -95,63 +100,74 @@ namespace Banana.Pages
             }
         }
 
-        public IActionResult OnPost(int id, bool publish = false)
+        // form data must contain an 'Action' field.
+        //  - 'save':    responds with html in the form  <h1>...</h1><div>...</div>
+        //  - 'publish': redirects to ViewPage.cshtml
+        public IActionResult OnPost(int id)
         {
-            if (ModelState.IsValid)
+            var form = Request.Form;
+            if (form == null) return BadRequest();
+            bool publish = false;
+            string action = form["Action"];
+            if (action == "publish") publish = true;
+            else if (action == "save") { }
+            else return BadRequest();
+            UserPage = _pageManager.GetPage(id);
+            if (UserPage == null) return BadRequest();
+            if (!ModelState.IsValid) return BadRequest();
+
+            if (UserPage.DraftId != null)
+                DraftPage = _pageManager.GetPage(UserPage.DraftId ?? 0);
+
+            if (publish) // user clicked 'Publish'
             {
-                UserPage = _pageManager.GetPage(id);
-                if (UserPage == null)
-                    return LocalRedirect("~/");
-                if (UserPage.DraftId != null)
-                    DraftPage = _pageManager.GetPage(UserPage.DraftId ?? 0);
+                _pageManager.Update(UserPage);
+                UpdateContent(UserPage, out var data);
+                UserPage.DraftId = null;
+                UserPage.IsPublic = true;
+                UserPage.LastModifiedDate = DateTime.Now;
 
-                if (publish) // user clicked 'Publish'
-                {
-                    _pageManager.Update(UserPage);
-                    UpdateContent(UserPage, out var data);
-                    UserPage.DraftId = null;
-                    UserPage.IsPublic = true;
-                    UserPage.LastModifiedDate = DateTime.Now;
+                if (DraftPage != null)
+                    _pageManager.Remove(DraftPage);
 
-                    if (DraftPage != null)
-                        _pageManager.Remove(DraftPage);
-
-                    UpdateLabels(UserPage, data);
-
-                    _pageManager.SaveChanges();
-                    return LocalRedirect($"~/page/{id}");
-                }
-
-                // if we are here then user has clicked 'Preview'
-                if (UserPage.IsPublic && DraftPage == null)
-                {
-                    int newId = _pageManager.NewId();
-
-                    var page = UserPage.CopyAsDraft();
-                    page.Id = newId;
-                    UpdateContent(page, out var data);
-                    _pageManager.Add(page);
-
-                    _pageManager.Update(UserPage);
-                    UserPage.DraftId = newId;
-                }
-                else if (!UserPage.IsPublic)
-                {
-                    _pageManager.Update(UserPage);
-                    UpdateContent(UserPage, out var data);
-                }
-                else // IsPublic && DraftPage != null
-                {
-                    _pageManager.Update(DraftPage);
-                    UpdateContent(DraftPage, out var data);
-                }
+                UpdateLabels(UserPage, data);
 
                 _pageManager.SaveChanges();
-                return LocalRedirect($"~/page/{id}/edit");
+                return LocalRedirect($"~/page/{id}");
             }
 
-            // TODO: it should really be 'return Page();' but it doesn't work
-            return LocalRedirect($"~/page/{id}/edit");
+            // if we are here then Action == 'save'
+            UserPage page;
+            if (UserPage.IsPublic && DraftPage == null)
+            {
+                int newId = _pageManager.NewId();
+
+                page = UserPage.CopyAsDraft();
+                page.Id = newId;
+                UpdateContent(page, out var data);
+                _pageManager.Add(page);
+
+                _pageManager.Update(UserPage);
+                UserPage.DraftId = newId;
+            }
+            else if (!UserPage.IsPublic)
+            {
+                page = UserPage;
+                _pageManager.Update(page);
+                UpdateContent(page, out var data);
+            }
+            else // IsPublic && DraftPage != null
+            {
+                page = DraftPage;
+                _pageManager.Update(page);
+                UpdateContent(page, out var data);
+            }
+
+            _pageManager.SaveChanges();
+
+            string html = "<h1 class=\"box-h1\">" + page.HtmlTitle + "</h1>" +
+                "<div class=\"user-page-content\">" + page.GetFinalHtml(_pageManager) + "</div>";
+            return Content(html);
         }
     }
 }
