@@ -15,14 +15,12 @@ namespace Banana.Text
         // labels are used for \ref{} substituting
         public static string ToHtml(string s, UserPage page, ParserOptions options, out ExpansionData data)
         {
+            data = Preamble.GetInitialExpansionData();
+
             if (string.IsNullOrWhiteSpace(s))
-            {
-                data = null;
                 return "";
-            }
 
             var tokens = Expression.Parse(s, "user");
-            data = Preamble.GetInitialExpansionData();
 
             // add \@secnum
             var secNum = new List<Token>();
@@ -43,13 +41,16 @@ namespace Banana.Text
                 Expression.ExpandSpecials(tokens, data);
                 tokens = Expression.ExpandFinal(tokens, data);
 
+                ReplaceCodeTokens(tokens, s);
+
                 return ToHtmlFinal(tokens, options, data);
             }
             catch (TextException e)
             {
                 if (options.HasFlag(ParserOptions.SingleLine))
                     return "[错误]";
-                return "<p><strong>错误！</strong>代码没有通过编译。以下是错误信息。</p><pre class=\"error-message\">" + e.GetMessage() + "</pre>";
+                return "<p><strong>错误！</strong>代码没有通过编译。以下是错误信息。</p><pre class=\"error-message\">" +
+                    HttpUtility.HtmlEncode(e.GetMessage()) + "</pre>";
             }
             //catch (Exception e)
             //{
@@ -57,6 +58,58 @@ namespace Banana.Text
             //        return "[错误]";
             //    return $"<p><strong>错误！</strong>{e.Message}</p>";
             //}
+        }
+
+        // replaces CodeSnippet tokens, which only know the start and end positions, with the actual text
+        private static void ReplaceCodeTokens(List<Token> tokens, string s)
+        {
+            var lines = s.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n');
+            foreach (var token in tokens)
+            {
+                if (token.Type == TokenType.CodeSnippet)
+                {
+                    string prefix = token.Text.Substring(0, 2), text = "";
+
+                    var match = Regex.Match(token.Text.Substring(2), @"^(\d+):(\d+)/(\d+):(\d+)$");
+                    if (!match.Success) throw new Exception();
+
+                    int startLine = int.Parse(match.Groups[1].Value),
+                        startCh = int.Parse(match.Groups[2].Value),
+                        endLine = int.Parse(match.Groups[3].Value),
+                        endCh = int.Parse(match.Groups[4].Value);
+                    char tempLineSeparator = '\ufff0', // \ufff0 won't be removed by Trim()
+                        tempBackslash = '\ufff1',
+                        tempNumberSign = '\ufff2';
+
+                    if (startLine == endLine)
+                        text = lines[startLine].Substring(startCh, endCh - startCh);
+                    else
+                    {
+                        text = lines[startLine].Substring(startCh) + tempLineSeparator;
+                        for (int i = startLine + 1; i < endLine; i++)
+                            text += lines[i] + tempLineSeparator;
+                        text += lines[endLine].Substring(0, endCh);
+                    }
+
+                    // disallow empty lines at start / end of text
+                    while (text.TrimStart().StartsWith(tempLineSeparator))
+                        text = text.TrimStart().TrimStart(tempLineSeparator);
+                    while (text.TrimEnd().EndsWith(tempLineSeparator))
+                        text = text.TrimEnd().TrimEnd(tempLineSeparator);
+                    text = text.Replace("\\\\", tempBackslash.ToString())
+                        .Replace("\\#", tempNumberSign.ToString())
+                        .Replace("#{", "{").Replace("#}", "}").Replace("#\\", "\\").Replace("#%", "%")
+                        .Replace(tempNumberSign.ToString(), "\\#")
+                        .Replace(tempBackslash.ToString(), "\\\\");
+
+                    if (prefix == "D/")
+                        text = text.Replace(tempLineSeparator.ToString(), "\r\n");
+                    else // multi-line inline code will be weird
+                        text = text.Replace(tempLineSeparator, ' ');
+
+                    token.Text = prefix + text;
+                }
+            }
         }
 
         // converts compiled tokens to html string
@@ -186,6 +239,12 @@ namespace Banana.Text
                             }
 
                             html += $"<:REF:{HttpUtility.HtmlEncode(token.Text)}>";
+                            break;
+                        case TokenType.CodeSnippet:
+                            bool isDisplayCode = token.Text.StartsWith("D/");
+                            html += isDisplayCode ? "<pre class=\"paragraph code-snippet\">" : "<code class=\"code-snippet\">";
+                            html += HttpUtility.HtmlEncode(token.Text.Substring(2));
+                            html += isDisplayCode ? "</pre>" : "</code>";
                             break;
                         default:
                             html += "<span style=\"color:red;font-weight:bold\">" + HttpUtility.HtmlEncode(token.ToString()) + "</span>";

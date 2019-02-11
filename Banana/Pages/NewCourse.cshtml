@@ -1,11 +1,11 @@
 ﻿@page
 @model Banana.Pages.NewCourseModel
 @{
-    ViewData["Title"] = Model.IsAdmin ? "审核课程" : "申请创建课程";
+    ViewData["Title"] = "创建文档";
 }
 
-<div class="box not-too-wide center-block large-margin-top large-padding">
-    <h1 class="box-h1">@ViewData["Title"]</h1>
+<div class="box not-wide center-block large-margin-top large-padding">
+    <h1 class="box-h1 text-center">@ViewData["Title"]</h1>
 
     <form method="post">
         <div asp-validation-summary="All" class="text-danger"></div>
@@ -14,27 +14,10 @@
             <input asp-for="Input.Title" class="form-control textbox-code" autocomplete="off" />
             <span asp-validation-for="Input.Title" class="text-danger"></span>
         </div>
-
+        <p style="line-height:1.7;margin-bottom:1em">标题可以包含数学公式，创建后仍然可以修改。一个文档可以包含很多页面，主页面的标题就是文档的标题。</p>
         <div class="form-group">
-            <label asp-for="Input.Type"></label>
-            <input asp-for="Input.Type" class="form-control textbox-code" autocomplete="off" placeholder="例如: 讨论班 / 课程 / 博客 / ..." />
-            <span asp-validation-for="Input.Type" class="text-danger"></span>
+            <input type="submit" value="创建" class="btn button-yellow" />
         </div>
-
-        @if (Model.IsAdmin)
-        {
-            <div class="form-group">
-                <input type="submit" value="确认发布" class="btn button-yellow" asp-page-handler="Confirm" asp-route-requestId="@Model.RequestId" />
-                <input type="submit" value="拒绝发布" class="btn button-yellow" asp-page-handler="Reject" asp-route-requestId="@Model.RequestId" />
-            </div>
-        }
-        else
-        {
-            <div class="form-group">
-                <p>提交申请后，课程将在管理员确认后发布。</p>
-                <input type="submit" value="提交申请" class="btn button-yellow" />
-            </div>
-        }
     </form>
 </div>
 

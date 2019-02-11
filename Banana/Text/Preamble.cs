@@ -19,6 +19,7 @@ namespace Banana.Text
             "@@block",
             "@@bmk",
             "@@char",
+            "@@code",
             "@@def",
             "@@defa",
             "@@ea",

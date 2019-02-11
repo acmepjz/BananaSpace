@@ -13,6 +13,32 @@ $(function () {
         });
     }); 
 
+    // ViewPage.cshtml
+    $('#_btn-fav').click(function () {
+        var $this = $(this);
+        if ($this.attr('disabled')) return;
+        $this.attr('disabled', 'disabled');
+
+        var pageId = $this.attr('data-page-id'),
+            data = new FormData(),
+            action = $this.attr('data-action'),
+            rvt = $('input[name="__RequestVerificationToken"]').val();
+        data.append('Action', action);
+
+        $.ajax({
+            url: '/page/' + pageId,
+            data: data,
+            processData: false,
+            contentType: false,
+            headers: { "RequestVerificationToken": rvt },
+            type: 'POST',
+            success: function () {
+                $this.removeAttr('disabled').attr('data-action', action == 'add-fav' ? 'cancel-fav' : 'add-fav')
+                .text(action == 'add-fav' ? '取消收藏' : '收藏页面');
+            }
+        });
+    });
+
     // ManageCourse.cshtml
     $('#dialog-add-page').on('dialogopen', function () {
         $('#dialog-section-number-textbox').val('');
@@ -21,20 +47,25 @@ $(function () {
 
     // CodeMirror
     var $textarea = $('.textarea-code'), codemirror;
-    if (!$.isEmptyObject($textarea)) {
+    if ($textarea.length > 0 && CodeMirror) {
         codemirror = CodeMirror.fromTextArea($textarea[0], {
             lineNumbers: true,
             lineWrapping: true,
             viewportMargin: Infinity,
-            mode: 'tex'
+            mode: 'tex',
+            readOnly: $textarea.attr('readonly') ? true : false
         });
         codemirror.init(codemirror)
     }
 
+    // syntax highlighting
+    if (typeof CodeMirror !== 'undefined' && CodeMirror.colorize)
+        CodeMirror.colorize($('.code-snippet'), 'tex');
+
     // EditPage.cshtml
-    if ($('.editor-container')) {
+    if ($('.editor-container').length > 0) {
         $('.editor-tab-link').click(function () {
-            if ($.isEmptyObject($(this).parents('.editor-tab-link-inactive'))) return;
+            if ($(this).parents('.editor-tab-link-inactive').length === 0) return;
             // there are only 2 tabs, so we simply need to swap them
             var $active = $('.editor-tab-active').removeClass('editor-tab-active'),
                 $inactive = $('.editor-tab-inactive').removeClass('editor-tab-inactive'),
@@ -46,13 +77,30 @@ $(function () {
             $linkInactive.addClass('editor-tab-link-active');
         });
 
+        // override Ctrl+S
+        $(document).keydown(function (e) {
+            var key = undefined;
+            var possible = [e.key, e.keyIdentifier, e.keyCode, e.which];
+            while (key === undefined && possible.length > 0)
+                key = possible.pop();
+
+            if (key && (key == 115 || key == 83) && (e.ctrlKey || e.metaKey) && !(e.altKey)) {
+                e.preventDefault();
+                $('.editor-save-button').trigger('click');
+                return false;
+            }
+            return true;
+        }); 
+
         var $form = $('.editor-container form'),
-            pageId = $form.attr('data-page-id')[0],
+            pageId = $form.attr('data-page-id'),
             rvt = $('input[name="__RequestVerificationToken"]').val();
         $('.editor-save-button').click(function () {
+            var $this = $(this);
+            if ($this.attr('disabled')) return;
+
             // TODO: VALIDATE
 
-            var $this = $(this);
             $this.attr('disabled', 'disabled').text('正在保存...');
 
             prepareForSaving();
@@ -73,6 +121,8 @@ $(function () {
                     $('.previewer-container .box').html(data);
                     if (MathJax)
                         MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
+                    if (CodeMirror.colorize)
+                        CodeMirror.colorize($('.code-snippet'), 'tex');
                     window.onbeforeunload = null;
                 },
                 error: function () {
@@ -94,12 +144,12 @@ $(function () {
 
     // file uploading
     var fileInput = $('#_file-input');
-    if (fileInput) {
-        fileId = $('file-list').attr('data-initial-count');
+    if (fileInput.length > 0) {
+        fileId = 1000;
         var rvt = $('input[name="__RequestVerificationToken"]').val(),
             pageId = fileInput.attr('data-page-id');
 
-        $('.file-upload-button').click(function () {
+        $('.file-upload-link').click(function () {
             $('#_file-input').trigger('click');
         });
 
@@ -120,7 +170,7 @@ $(function () {
             else {
                 var toReplace = false;
                 $('.file-list-item').each(function () {
-                    var text = $(this).children('.file-list-item-name').text();
+                    var text = $(this).find('.file-list-item-name').text();
                     if (text.localeCompare(file.name, 'en', { sensitivity: 'base' }) == 0)
                         toReplace = $(this).attr('data-id');
                 });
@@ -129,7 +179,7 @@ $(function () {
 
             if (errorMsg || confirmMsg) {
                 var dialog = $('.dialog-confirm');
-                dialog.children('.dialog-content').text(errorMsg || confirmMsg);
+                dialog.find('.dialog-content').text(errorMsg || confirmMsg);
                 onConfirm = confirmMsg ? function () { doUpload(thisFileId, file, toReplace); } : false;
                 $('.ui-dialog-title').text('上传文件');
                 dialog.addClass('dialog-open').dialog('open');
@@ -143,7 +193,7 @@ $(function () {
             var thisFileId = $(this).parents('.file-list-item').attr('data-id');
 
             var dialog = $('.dialog-confirm');
-            dialog.children('.dialog-content').text('确认删除此文件吗？删除后将无法恢复，只能重新上传。');
+            dialog.find('.dialog-content').text('确认删除此文件吗？删除后将无法恢复，只能重新上传。');
             onConfirm = function () { doDelete(thisFileId); };
             $('.ui-dialog-title').text('确认删除');
             dialog.addClass('dialog-open').dialog('open');
@@ -154,7 +204,7 @@ $(function () {
                 $('.file-list-item[data-id=' + toReplace + ']').remove();
 
             $('<div>', {
-                'class': 'file-list-item',
+                'class': 'file-list-item list-item',
                 'data-id': thisFileId,
                 'html': $('<div>', {
                     'class': 'file-list-item-name',
@@ -169,7 +219,7 @@ $(function () {
                     })
                 })).add($('<div>', {
                     'html': $('<a>', {
-                        'class': 'file-delete-link',
+                        'class': 'file-delete-link link-no-underline',
                         'href': '#'
                     }).text('删除').click(onDelete).css('display', 'none')
                 }))
@@ -256,36 +306,29 @@ $('.dialog-button-confirm').click(function () {
     onConfirm = false;
 });
 
-$('.link-publish-changes').each(function () {
-    $(this).click(function () {
-        $('#dialog-publish-changes').addClass('dialog-open').dialog('open');
-        $('.dialog-open button.dialog-button-confirm')
-            .attr('formaction', '/ManageCourse?handler=Publish&id=' + $(this).attr('data-tag'));
-    });
+$('.link-confirm').click(function () {
+    $('.dialog-confirm').addClass('dialog-open').dialog('open');
+    var $this = $(this), $dialog = $('.dialog-confirm').parents('.ui-dialog');
+    $dialog.find('input[name=Action]').val($this.attr('data-action'));
+    $dialog.find('input[name=PageId]').val($this.attr('data-page-id'));
+    $dialog.find('.ui-dialog-title').text($this.attr('data-title'));
+    $dialog.find('.dialog-content').text($this.attr('data-message'));
 });
 
-$('.link-publish-all').each(function () {
-    $(this).click(function () {
-        $('#dialog-publish-all').addClass('dialog-open').dialog('open');
-        $('.dialog-open button.dialog-button-confirm')
-            .attr('formaction', '/ManageCourse?handler=PublishAll&id=' + $(this).attr('data-tag'));
-    });
+$('.link-add-page').click(function () {
+    $('.dialog-add-page').addClass('dialog-open').dialog('open');
+    var $this = $(this), $dialog = $('.dialog-add-page').parents('.ui-dialog');
+    $dialog.find('input[name=Action]').val($this.attr('data-action'));
+    $dialog.find('input[name=PageId]').val($this.attr('data-page-id'));
 });
 
-$('.link-add-page').each(function () {
-    $(this).click(function () {
-        $('#dialog-add-page').addClass('dialog-open').dialog('open');
-        $('.dialog-open button.dialog-button-confirm')
-            .attr('formaction', '/ManageCourse?handler=AddPage&id=' + $(this).attr('data-tag') + '&option=' + $(this).attr('data-tag-option'));
-    });
-});
-
-$('.link-delete-page').each(function () {
-    $(this).click(function () {
-        $('#dialog-delete-page').addClass('dialog-open').dialog('open');
-        $('.dialog-open button.dialog-button-confirm')
-            .attr('formaction', '/ManageCourse?handler=DeletePage&id=' + $(this).attr('data-tag'));
-    });
+$('.link-delete').click(function () {
+    $('.dialog-delete').addClass('dialog-open').dialog('open');
+    var $this = $(this), $dialog = $('.dialog-delete').parents('.ui-dialog');
+    $dialog.find('input[name=Action]').val($this.attr('data-action'));
+    $dialog.find('input[name=PageId]').val($this.attr('data-page-id'));
+    $dialog.find('.ui-dialog-title').text($this.attr('data-title'));
+    $dialog.find('.dialog-content').text($this.attr('data-message'));
 });
 
 $('.leave-no-confirm').click(function () {

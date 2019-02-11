@@ -1,26 +1,40 @@
 ﻿@model Banana.Pages.Shared._CourseListPartialModel
 
-<div>
-    @if (Model.Courses != null)
+<div class="not-too-long">
+    @if (Model.Courses != null && Model.Courses.Any())
     {
+        string userName = User?.Identity?.Name;
         foreach (var course in Model.Courses)
         {
+            var _page = Model.GetNewestPage(course);
             <a class="link-no-underline noselect"
-               @(Model.Type == CourseListType.View 
-                ? (course.Status == Data.CourseStatus.Normal ? $"href=page/{course.MainPageId}" : "")
-                : $"href=NewCourse?requestId={course.Id}")>
-                <div class="list-item">
+               @($"href=page/{course.MainPageId}")>
+                <div class="list-item@(course.Creator == userName ? " list-item-creator" : "")">
                     <div class="list-item-header">
-                        @course.Title
-                        <span class="list-item-header-description">
-                            @(course.Status == Data.CourseStatus.Request ? "申请中" : course.Type)
-                        </span>
+                        @Html.Raw(course.Title)
+                        @if (course.Creator != userName)
+                        {
+                            <span class="list-item-header-description">
+                                创建者: <span>@course.Creator</span>
+                            </span>
+                        }
                     </div>
                     <div class="list-item-description">
-                        创建者：@course.Creator
+                        @Model.DateTimeString(course.LastUpdatedDate, true)@*
+                        *@@(course.LastUpdatedDate == course.CreationDate ? "创建" : "更新")@*
+                        *@@if (course.LastUpdatedDate != course.CreationDate && _page != null)
+                        {
+                            <text>了页面：@(_page.SectionNumber == null ? "" : _page.SectionNumber + ". ")</text>@Html.Raw(_page.HtmlTitle)
+                        }
                     </div>
                 </div>
             </a>
         }
+    }
+    else
+    {
+        <div class="list-item">
+            这里没有文档。
+        </div>
     }
 </div>

@@ -5,73 +5,8 @@
 }
 
 <div>
-    <div class="sidebar">
-        <div class="box">
-            <div class="box-title">页面信息</div>
-            <div class="med-padding text-center">
-                <p>发布于 @Model.UserPage.CreationDate.ToString("yyyy-MM-dd")</p>
-                @if (Model.UserPage.LastModifiedDate != Model.UserPage.CreationDate)
-                {
-                    <p>编辑于 @Model.UserPage.LastModifiedDate.ToString("yyyy-MM-dd")</p>
-                }
-                @if (Model.IsCreatorOrAdmin)
-                {
-                    <div class="flex-row">
-                        <a href="~/page/@Model.UserPage.Id/edit" class="btn button-yellow small-margin">编辑页面</a>
-                        <a href="~/manage/@Model.UserCourse.Id" class="btn button-yellow small-margin">课程管理</a>
-                    </div>
-                }
-                else
-                {
-                    <div class="flex-row">
-                        <a href="~/page/@Model.UserPage.Id/source" class="btn button-yellow small-margin">查看源码</a>
-                        <a class="btn button-yellow small-margin">关注课程</a>
-                    </div>
-                }
-            </div>
-        </div>
-
-        <div class="box">
-            <div class="box-title">课程目录</div>
-
-            @foreach (var _page in Model.AllPagesInCourse)
-            {
-                <a class="link-no-underline" href="~/page/@_page.Id">
-                    <div class="list-item list-item-narrow">
-                        @if (_page.Id == Model.UserCourse.MainPageId)
-                        {
-                            <div class="list-item-header">
-                                @Html.Raw(_page.HtmlTitle)
-                            </div>
-                        }
-                        else if (_page.Id == Model.UserPage.Id)
-                        {
-                            <div class="list-item-current">
-                                @if (_page.SectionNumber != null)
-                                {
-                                    @_page.SectionNumber<text>.</text>
-                                }
-                                @Html.Raw(_page.HtmlTitle)
-                            </div>
-                        }
-                        else
-                        {
-                            <div>
-                                @if (_page.SectionNumber != null)
-                                {
-                                    <strong>@_page.SectionNumber<text>.</text></strong>
-                                }
-                                @Html.Raw(_page.HtmlTitle)
-                            </div>
-                        }
-                    </div>
-                </a>
-            }
-        </div>
-    </div>
-
     <div class="page-body">
-        <div class="box med-padding med-margin-right">
+        <div class="box med-padding">
             <h1 class="box-h1">
                 @(Model.UserPage.SectionNumber == null ? "" : Model.UserPage.SectionNumber + ". ")@Html.Raw(Model.PageTitle)
             </h1>
@@ -81,4 +16,56 @@
             </div>
         </div>
     </div>
+
+    <div class="sidebar">
+        <div class="box hide-mobile">
+            <div class="med-padding text-center">
+                <p>发布于 @Model.UserPage.CreationDate.ToString("yyyy-MM-dd")</p>
+                @if (Model.UserPage.LastModifiedDate != Model.UserPage.CreationDate)
+                {
+                    <p>编辑于 @Model.UserPage.LastModifiedDate.ToString("yyyy-MM-dd")</p>
+                }
+
+                @if (Model.IsCreatorOrAdmin)
+                {
+                    <div class="flex-row">
+                        <a href="~/page/@Model.UserPage.Id/edit" class="btn button-yellow small-margin">编辑页面</a>
+                        <a href="~/manage/@Model.UserCourse.Id" class="btn button-yellow small-margin">文档管理</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="flex-row">
+                        <a href="~/page/@Model.UserPage.Id/source" class="btn button-yellow small-margin">查看源码</a>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <form method="post">
+                                @if (Model.IsFavorite)
+                                {
+                                    <a href="#" id="_btn-fav" data-page-id="@Model.UserPage.Id" data-action="cancel-fav" class="btn button-yellow small-margin">取消收藏</a>
+                                }
+                                else
+                                {
+                                    <a href="#" id="_btn-fav" data-page-id="@Model.UserPage.Id" data-action="add-fav" class="btn button-yellow small-margin">收藏文档</a>
+                                }
+                            </form>
+                        }
+                        else
+                        {
+                            <a href="~/login" class="btn button-yellow small-margin">收藏文档</a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <partial name="Shared/_PageListPartial" model="Model._PageListPartialModel" />
+    </div>
 </div>
+
+@section Scripts {
+    <script src="~/lib/codemirror/lib/codemirror.js"></script>
+    <script src="~/lib/codemirror/mode/tex-readonly.js"></script>
+    <script src="~/lib/codemirror/addon/runmode/runmode.js"></script>
+    <script src="~/lib/codemirror/addon/runmode/colorize.js"></script>
+}

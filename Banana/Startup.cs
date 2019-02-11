@@ -38,10 +38,15 @@ namespace Banana
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             var rewriter = new RewriteOptions()
-                .AddRewrite(@"^manage/([0-9]+)$", "ManageCourse?id=$1", true)
-                .AddRewrite(@"^page/([0-9]+)$", "ViewPage?id=$1", true)
-                .AddRewrite(@"^page/([0-9]+)/edit$", "EditPage?id=$1", true)
-                .AddRewrite(@"^user$", "UserProfile", true);
+                .AddRewrite(@"^create/?$", "NewCourse", true)
+                .AddRewrite(@"^login/?$", "Identity/Account/Login", true)
+                .AddRewrite(@"^logout/?$", "Identity/Account/Logout", true)
+                .AddRewrite(@"^manage/([0-9]+)/?$", "ManageCourse?id=$1", true)
+                .AddRewrite(@"^page/([0-9]+)/?$", "ViewPage?id=$1", true)
+                .AddRewrite(@"^page/([0-9]+)/edit/?$", "EditPage?id=$1", true)
+                .AddRewrite(@"^page/([0-9]+)/source/?$", "ViewSource?id=$1", true)
+                .AddRewrite(@"^register/?$", "Identity/Account/Register", true)
+                .AddRewrite(@"^user/?$", "UserProfile", true);
             app.UseRewriter(rewriter);
 
             if (env.IsDevelopment())

@@ -11,13 +11,13 @@ namespace Banana.Pages
 {
     public class IndexModel : PageModel
     {
-        public UserPageManager PageDataManager { get; }
+        private UserPageManager _pageManager;
         public _CourseListPartialModel CourseListModel { get; }
 
-        public IndexModel(UserPageManager pageDataManager)
+        public IndexModel(UserPageManager pageManager)
         {
-            PageDataManager = pageDataManager;
-            CourseListModel = new _CourseListPartialModel { Courses = PageDataManager.GetAllCourses() };
+            _pageManager = pageManager;
+            CourseListModel = new _CourseListPartialModel(pageManager) { Courses = _pageManager.GetAllCourses() };
         }
 
         public void OnGet()

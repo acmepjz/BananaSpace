@@ -50,5 +50,45 @@ namespace Banana.Data
             }
             catch { return false; }
         }
+
+        public bool CopyFiles(int from, int to, bool move)
+        {
+            try
+            {
+                string fromPath = Path.Combine(UploadsPath, from.ToString()),
+                    toPath = Path.Combine(UploadsPath, to.ToString());
+                if (Directory.Exists(toPath))
+                    Directory.Delete(toPath, true);
+                if (!Directory.Exists(fromPath))
+                    return true;
+                if (move)
+                    Directory.Move(fromPath, toPath);
+                else
+                    CopyDirectoryFiles(fromPath, toPath);
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool DeleteFiles(int pageId)
+        {
+            try
+            {
+                string path = Path.Combine(UploadsPath, pageId.ToString());
+                if (Directory.Exists(path))
+                    Directory.Delete(path, true);
+                return true;
+            }
+            catch { return false; }
+        }
+
+        private void CopyDirectoryFiles(string from, string to)
+        {
+            if (!Directory.Exists(to))
+                Directory.CreateDirectory(to);
+            var files = Directory.GetFiles(from);
+            foreach (string file in files)
+                File.Copy(file, file.Replace(from, to), true);
+        }
     }
 }

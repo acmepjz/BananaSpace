@@ -28,7 +28,7 @@ namespace Banana.Text
         public static TextException InvalidCharCode(Token token, string parameter) => new TextException($"'{Flatten(parameter)}' 不是有效的字符编码。", token);
         public static TextException InvalidMacroName(Token token, string parameter) => new TextException($"'{Flatten(parameter)}' 不是合法的宏名称。", token);
         public static TextException InvalidLabelName(Token token, string parameter) => new TextException($"'{Flatten(parameter)}' 不是合法的书签名。书签名只能由字母、数字和 '-' 构成。", token);
-        public static TextException InvalidRefInMathMode(Token token) => new TextException("无法在数学公式中进行交叉引用。", token);
+        public static TextException InvalidInMathMode(Token token) => new TextException("此命令无法在数学公式中使用。", token);
         public static TextException InvalidVariableName(Token token, string parameter) => new TextException($"'{Flatten(parameter)}' 不是合法的变量名。变量名只能由字母、数字和 '-' 构成。", token);
         public static TextException MaxBufferExceeded(Token token, int tokens) => new TextException($"宏展开使得代码长度超过了最大限制 ({tokens})。代码中可能存在死循环。", token);
         public static TextException MaxExpansionsExceeded(Token token, int expansions) => new TextException($"宏展开的次数超过了最大限制 ({expansions})。代码中可能存在死循环。", token);
@@ -57,7 +57,6 @@ namespace Banana.Text
             }
 
             s = s == "" ? Message : Message + "\r\n\r\n" + s;
-            s = HttpUtility.HtmlEncode(s);
             return s;
         }
     }

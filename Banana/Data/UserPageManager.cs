@@ -21,10 +21,12 @@ namespace Banana.Data
         private DbSet<UserCoursePagesItem> CoursePages { get; set; }
         private DbSet<UserLabel> Labels { get; set; }
         private DbSet<UserRole> UserRole { get; set; }
+        private DbSet<UserFavoritesItem> UserFavorites { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<UserCoursePagesItem>().HasKey("CourseId", "PageId");
+            modelBuilder.Entity<UserFavoritesItem>().HasKey("UserName", "CourseId");
             modelBuilder.Entity<UserRole>().HasKey("UserName");
         }
 
@@ -35,19 +37,11 @@ namespace Banana.Data
                     select course).FirstOrDefault();
         }
 
-        public IEnumerable<UserCourse> GetAllCourses()
+        public IEnumerable<UserCourse> GetAllCourses(Func<UserCourse, bool> selector = null)
         {
             return from course in Courses
-                   where course.Status == CourseStatus.Normal
+                   where selector == null || selector(course)
                    orderby course.LastUpdatedDate descending
-                   select course;
-        }
-
-        public IEnumerable<UserCourse> GetAllCourseRequests()
-        {
-            return from course in Courses
-                   where course.Status == CourseStatus.Request
-                   orderby course.CreationDate descending
                    select course;
         }
 
@@ -72,13 +66,24 @@ namespace Banana.Data
         {
             return from course in Courses
                    where course.Creator == user
-                   orderby course.CreationDate descending
                    select course;
         }
 
         public IEnumerable<UserCourse> GetCoursesByFollower(string user)
         {
-            return null;
+            return (from item in UserFavorites
+                    where item.UserName == user
+                    join course in Courses on item.CourseId equals course.Id
+                    select course)
+                   .Union(GetCoursesByCreator(user))
+                   .OrderByDescending(course => course.LastUpdatedDate);
+        }
+
+        public bool UserIsFollower(string userName, int courseId)
+        {
+            return (from item in UserFavorites
+                    where item.UserName == userName && item.CourseId == courseId
+                    select item).Any();
         }
 
         public int NewId()
@@ -104,24 +109,23 @@ namespace Banana.Data
             return GetCourse(page.CourseId).Creator == userName || UserIsAdmin(userName);
         }
 
-        public void NewCourseRequest(string title, string type, string userName)
+        public UserCourse NewCourse(string userName)
         {
             int id = NewId();
+            var now = DateTime.Now;
             var course = new UserCourse
             {
                 Id = id,
-                Title = title,
-                Type = type,
+                Title = "Untitled",
                 Creator = userName,
                 MainPageId = id,
-                Status = CourseStatus.Request,
-                CreationDate = DateTime.Now,
-                LastUpdatedDate = DateTime.Now,
+                CreationDate = now,
+                LastUpdatedDate = now,
                 LastUpdatedPageId = id
             };
 
             Courses.Add(course);
-            SaveChanges();
+            return course;
         }
 
         public void AddPage(UserPage page, int index)
@@ -160,7 +164,10 @@ namespace Banana.Data
                 removedCount = 1;
 
             Remove(page);
+            if (page.DraftId != null)
+                Remove(GetPage(page.DraftId ?? -1));
             Remove(itemDict[page.Id]);
+            _fileManager.DeleteFiles(page.Id);
             foreach (var p in pages)
             {
                 if (i == 0)
@@ -175,6 +182,7 @@ namespace Banana.Data
                     {
                         Remove(p);
                         Remove(itemDict[p.Id]);
+                        _fileManager.DeleteFiles(p.Id);
                         removedCount++;
                     }
                 }
@@ -186,6 +194,39 @@ namespace Banana.Data
                     item.PageIndex -= removedCount;
                 }
             }
+        }
+
+        public void DeleteDraftPage(int draftId)
+        {
+            Remove(GetPage(draftId));
+        }
+
+        public void DeleteCourse(int courseId)
+        {
+            var pages = GetAllPages(courseId).ToList();
+            var course = GetCourse(courseId);
+
+            foreach (var page in pages)
+            {
+                Remove(page);
+                if (page.DraftId != null)
+                    Remove(GetPage(page.DraftId ?? -1));
+                _fileManager.DeleteFiles(page.Id);
+            }
+
+            Remove(course);
+
+            RemoveRange(from item in CoursePages
+                        where item.CourseId == courseId
+                        select item);
+
+            RemoveRange(from item in UserFavorites
+                        where item.CourseId == courseId
+                        select item);
+
+            RemoveRange(from label in Labels
+                        where label.CourseId == courseId
+                        select label);
         }
 
         public void ClearLabels(UserPage page)
@@ -213,6 +254,28 @@ namespace Banana.Data
             return from label in Labels
                    where label.CourseId == courseId
                    select label;
+        }
+
+        public void AddToFavorites(string userName, int courseId)
+        {
+            if ((from item in UserFavorites
+                 where item.UserName == userName && item.CourseId == courseId
+                 select item).Any())
+                return;
+            UserFavorites.Add(new UserFavoritesItem
+            {
+                UserName = userName,
+                CourseId = courseId
+            });
+        }
+
+        public void CancelFavorites(string userName, int courseId)
+        {
+            var toRemove = from item in UserFavorites
+                           where item.UserName == userName && item.CourseId == courseId
+                           select item;
+            foreach (var item in toRemove)
+                Remove(item);
         }
 
         public bool AddFile(UserPage page, IFormFile file)
@@ -264,6 +327,16 @@ namespace Banana.Data
                 return $"~/uploads/{page.Id}/{result}";
             else
                 return null;
+        }
+
+        public bool CopyFiles(int from, int to)
+        {
+            return _fileManager.CopyFiles(from, to, false);
+        }
+
+        public bool MoveFiles(int from, int to)
+        {
+            return _fileManager.CopyFiles(from, to, true);
         }
     }
 }

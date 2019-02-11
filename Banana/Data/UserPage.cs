@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -11,14 +12,12 @@ namespace Banana.Data
         public int Id { get; set; }
         public int CourseId { get; set; }
         public bool IsPublic { get; set; }
-        public string Title { get; set; }
-        public string HtmlTitle { get; set; }
+        public string Title { get; set; } = "";
+        public string HtmlTitle { get; set; } = "";
         public string SectionNumber { get; set; }
-        public string TheoremPrefix { get; set; }
         public int PageLevel { get; set; }
-        public string Preamble { get; set; }
-        public string Content { get; set; }
-        public string HtmlContent { get; set; }
+        public string Content { get; set; } = "";
+        public string HtmlContent { get; set; } = "";
         public int? DraftId { get; set; }
         public DateTime CreationDate { get; set; }
         public DateTime LastModifiedDate { get; set; }
@@ -26,13 +25,16 @@ namespace Banana.Data
 
         public UserPage() { }
 
-        public string GetFinalHtml(UserPageManager pageManager)
+        const string ImageStyleRegex = @"^((width|height)=\s*[0-9]+(.[0-9]+)?(%|px|pt|em|ex)(,\s*|$))+$";
+
+        public string GetFinalHtml(UserPageManager pageManager, UserPage nonDraftPage)
         {
+            if (HtmlContent == null) return "";
             string s = HtmlContent, html = "";
 
             int index;
             var labels = pageManager.GetAllLabels(CourseId);
-            var files = GetFileList();
+            var files = nonDraftPage.GetFileList();
 
             while (s.Contains("<:"))
             {
@@ -58,8 +60,12 @@ namespace Banana.Data
 
                     if (files.TryGetValue(name, out string hashedName))
                     {
-                        html += $"<img src=\"/uploads/{Id}/{hashedName}\" alt=\"{HttpUtility.HtmlEncode(name)}\" ";
-                        if (style != null) html += $"style=\"{HttpUtility.HtmlEncode(style)}\" ";
+                        html += $"<img src=\"/uploads/{nonDraftPage.Id}/{hashedName}\" alt=\"{HttpUtility.HtmlEncode(name)}\" ";
+                        if (style != null && Regex.IsMatch(style, ImageStyleRegex))
+                        {
+                            style = style.Replace('=', ':').Replace(',', ';');
+                            html += $"style=\"{style}\" ";
+                        }
                         html += "/>";
                     }
                     else
@@ -74,7 +80,7 @@ namespace Banana.Data
                     if (i == -1) throw new Exception();
                     var name = s.Substring(0, i);
                     s = s.Substring(i + 1);
-                    
+
                     var l = (from label in labels where label.Key == name select label).FirstOrDefault();
                     if (l != null)
                     {
@@ -134,9 +140,7 @@ namespace Banana.Data
             page.Title = Title;
             page.HtmlTitle = HtmlTitle;
             page.SectionNumber = SectionNumber;
-            page.TheoremPrefix = TheoremPrefix;
             page.PageLevel = PageLevel;
-            page.Preamble = Preamble;
             page.Content = Content;
             page.HtmlContent = HtmlContent;
             page.Files = Files;

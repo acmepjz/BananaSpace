@@ -35,10 +35,17 @@
                             <input asp-for="Input.Title" class="form-control textbox-code" autocomplete="off" />
                         </div>
 
-                        <div class="form-group">
-                            <label asp-for="Input.SectionNumber"></label>
-                            <input asp-for="Input.SectionNumber" class="form-control textbox-code" autocomplete="off" />
-                        </div>
+                        @if (Model.UserPage.Id == Model.UserCourse.MainPageId)
+                        {
+                            <p>这是文档的主页面。修改页面标题将会同步修改文档的标题。</p>
+                        }
+                        else
+                        {
+                            <div class="form-group">
+                                <label asp-for="Input.SectionNumber"></label>
+                                <input asp-for="Input.SectionNumber" class="form-control textbox-code" autocomplete="off" />
+                            </div>
+                        }
 
                         <div class="form-group">
                             <label>上传附件</label>
@@ -47,20 +54,20 @@
                                     var files = Model.UserPage.GetFileList();
                                     int index = 0;
 
-                                    <div class="file-list" data-initial-count="@files.Count">
+                                    <div class="file-list">
                                         @foreach (var pair in files)
                                         {
-                                            <div class="file-list-item" data-id="@(index++)">
+                                            <div class="file-list-item list-item" data-id="@(index++)">
                                                 <div class="file-list-item-name">@pair.Key</div>
                                                 <div class="file-progress-container"></div>
                                                 <div>
-                                                    <a class="file-delete-link" href="#">删除</a>
+                                                    <a class="file-delete-link link-no-underline" href="#">删除</a>
                                                 </div>
                                             </div>
                                         }
                                     </div>
                                 }
-                                <a class="file-upload-button" href="#">上传文件</a>
+                                <a class="file-upload-link link-no-underline" href="#">上传文件</a>
                             </div>
                         </div>
                     </div>
@@ -68,7 +75,7 @@
             </div>
 
             <div class="editor-form-buttons">
-                <a class="btn button-yellow leave-no-confirm editor-save-button">保存并预览</a>
+                <a class="btn button-yellow leave-no-confirm editor-save-button" title="Ctrl+S">保存并预览</a>
                 <div class="one-em-wide"></div>
                 <a class="btn button-yellow leave-no-confirm editor-publish-button">发布</a>
                 <div class="one-em-wide"></div>
@@ -81,7 +88,7 @@
 <div class="previewer-container">
     <div class="box med-padding">
         <h1 class="box-h1">
-            @Html.Raw(Model.PageTitle)
+            @(Model.UserPage.SectionNumber == null ? "" : Model.UserPage.SectionNumber + ". ")@Html.Raw(Model.UserPage.HtmlTitle)
         </h1>
 
         <div class="user-page-content">
@@ -104,7 +111,10 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="~/lib/codemirror/lib/codemirror.js"></script>
     <script src="~/lib/codemirror/mode/tex.js" asp-append-version="true"></script>
+    <script src="~/lib/codemirror/addon/display/placeholder.js"></script>
     <script src="~/lib/codemirror/addon/hint/show-hint.js"></script>
+    <script src="~/lib/codemirror/addon/runmode/runmode.js"></script>
+    <script src="~/lib/codemirror/addon/runmode/colorize.js"></script>
 }
 
 @section Stylesheets {

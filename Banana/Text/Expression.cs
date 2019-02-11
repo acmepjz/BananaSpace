@@ -810,7 +810,7 @@ namespace Banana.Text
 
                             case "@@ref":
                                 if (isMathMode)
-                                    throw TextException.InvalidRefInMathMode(t);
+                                    throw TextException.InvalidInMathMode(t);
                                 var argument = ReadTextArgument(tokens, ref i, data, t, true).Trim();
                                 result.Add(new Token(argument, TokenType.Reference));
                                 continue;
@@ -835,6 +835,47 @@ namespace Banana.Text
                             case "@@file":
                                 argument = ReadTextArgument(tokens, ref i, data, t, true).Trim();
                                 result.Add(new Token($"<:FILE:{HttpUtility.HtmlEncode(argument)}>", TokenType.Placeholder));
+                                continue;
+
+                            case "@@code":
+                                if (isMathMode)
+                                    throw TextException.InvalidInMathMode(t);
+                                if (i + 1 == tokens.Count)
+                                    throw TextException.TokenExpected(t);
+
+                                char mode = data.GetBool("display-code", false, true) ? 'D' : 'I'; // display vs inline
+                                TextPosition start, end;
+                                if (tokens[i + 1].Type == TokenType.BeginGroup)
+                                {
+                                    _i = GetGroupEnd(tokens, i + 1);
+                                    start = tokens[i + 1].End;
+                                    end = tokens[_i].Start;
+                                }
+                                else
+                                {
+                                    _i = i + 1;
+                                    start = tokens[i + 1].Start;
+                                    end = tokens[i + 1].End;
+                                }
+
+                                if (start.FileName != "user" || end.FileName != "user" ||
+                                    start.Line > end.Line ||
+                                    (start.Line == end.Line && start.Ch > end.Ch))
+                                    throw TextException.CustomMessage(t, "代码片段的输入格式不正确。");
+
+                                if (mode == 'D')
+                                {
+                                    result.Add(new Token("</span>", TokenType.HtmlTag));
+                                    result.Add(new Token("</div>", TokenType.HtmlTag));
+                                }
+                                // records only the start and end positions
+                                result.Add(new Token($"{mode}/{start.Line}:{start.Ch}/{end.Line}:{end.Ch}", TokenType.CodeSnippet));
+                                if (mode == 'D')
+                                {
+                                    result.Add(GetPTag(data));
+                                    result.Add(GetSpanTag(data));
+                                }
+                                i = _i;
                                 continue;
 
                             case "@@error":
@@ -1288,19 +1329,19 @@ namespace Banana.Text
             double fontSize = data.GetDouble("font-size", DefaultFontSize, false);
             string color = data.GetString("color", DefaultColor, false, ColorRegex),
                 _float = data.GetString("float", null, false, "^(left|right)$");
-            bool bold = data.GetBool("bold", false, false),
-                italic = data.GetBool("italic", false, false);
+            int bold = data.GetInt("bold", -1, false);
+            bool italic = data.GetBool("italic", false, false);
 
             if (fontSize != DefaultFontSize)
             {
                 if (fontSize < 6) fontSize = 6;
                 if (fontSize > 48) fontSize = 48;
-                styles.Add($"font-size: {fontSize}px");
+                styles.Add($"font-size: {fontSize / 10}rem");
             }
             if (color != DefaultColor)
                 styles.Add($"color: #{color}");
-            if (bold)
-                styles.Add("font-weight: bold");
+            if (bold == -2 || bold == 1)
+                styles.Add("font-weight: " + (bold == -2 ? "300" : "bold"));
             if (italic)
                 styles.Add("font-style: italic");
             if (_float != null)
@@ -1319,13 +1360,27 @@ namespace Banana.Text
         {
             var styles = new List<string>();
 
-            double parSep = data.GetDouble("par-sep", 18, false);
+            double parSepAbove = data.GetDouble("par-sep-above", 0, false),
+                parSepBelow = data.GetDouble("par-sep-below", 18, false);
+            int textAlign = data.GetInt("text-align", 0, false); // 0 = justify, 1 = l, 2 = c, 3 = r.
 
-            if (parSep != 18)
+            if (parSepAbove != 0)
             {
-                if (parSep < 0) parSep = 0;
-                if (parSep > 48) parSep = 48;
-                styles.Add($"margin-bottom: {parSep}px");
+                if (parSepAbove < 0) parSepAbove = 0;
+                if (parSepAbove > 48) parSepAbove = 48;
+                styles.Add($"margin-top: {parSepAbove / 10}rem");
+            }
+            if (parSepBelow != 18)
+            {
+                if (parSepBelow < 0) parSepBelow = 0;
+                if (parSepBelow > 48) parSepBelow = 48;
+                styles.Add($"margin-bottom: {parSepBelow / 10}rem");
+            }
+            if (textAlign >= 1 && textAlign <= 3)
+            {
+                styles.Add("text-align: " +
+                    (textAlign == 1 ? "left" :
+                    textAlign == 2 ? "center" : "right"));
             }
 
             if (styles.Count == 0)

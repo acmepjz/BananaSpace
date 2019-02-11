@@ -1,0 +1,41 @@
+﻿@model Banana.Pages.Shared._PageListPartialModel
+
+<div class="box">
+    <div class="box-title">文档目录</div>
+
+    <div class="small-padding">
+        @foreach (var _page in Model.AllPagesInCourse)
+        {
+            <a class="link-no-underline" href="~/page/@_page.Id">
+                <div class="list-item-plain">
+                    @if (_page.Id == Model.UserCourse.MainPageId)
+                    {
+                        <div class="list-item-header@(Model.UserPage.Id == _page.Id ? " list-item-current" : "")">
+                            @Html.Raw(_page.HtmlTitle)
+                        </div>
+                    }
+                    else if (_page.Id == Model.UserPage.Id)
+                    {
+                        <div class="list-item-current" style="margin-left:@(_page.PageLevel)em">
+                            @if (_page.SectionNumber != null)
+                            {
+                                @_page.SectionNumber<text>.</text>
+                            }
+                            @Html.Raw(_page.HtmlTitle)
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="margin-left:@(_page.PageLevel)em">
+                            @if (_page.SectionNumber != null)
+                            {
+                                <strong>@_page.SectionNumber<text>.</text></strong>
+                            }
+                            @Html.Raw(_page.HtmlTitle)
+                        </div>
+                    }
+                </div>
+            </a>
+        }
+    </div>
+</div>

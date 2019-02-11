@@ -3,102 +3,120 @@
 
 @using Banana.Data
 
-<div class="page-body">
-    <div class="box med-padding med-margin-right">
-        <h1 class="box-h1">@ViewData["Title"]</h1>
+<div class="box center-block med-padding not-too-wide">
+    <h1 class="box-h1">管理: @Html.Raw(Model.UserCourse.Title)</h1>
 
-        <div class="list-header">
-            管理页面
-        </div>
-        @{
-            int lastLevelZeroId = -1;
-            bool hasUnpublished = false,
-                canAdd = Model.UserPages.Count < ManageCourseModel.MaxPagesInCourse;
-        }
-        @foreach (var _page in Model.UserPages)
-        {
-            bool hasDraft = _page.DraftId != null,
-                isUnpublished = !_page.IsPublic,
-                isMainPage = _page.CourseId == _page.Id,
-                canAddSubpage = _page.PageLevel <= 2;
-            if (_page.PageLevel == 0)
-            {
-                lastLevelZeroId = _page.Id;
-            }
-
-            <div class="list-item list-item-unsel">
-                <div class="noselect @(hasDraft ? "page-list-item-has-draft" : isUnpublished ? "page-list-item-unpublished" : "page-list-item-normal")"
-                     style="padding-left: @(_page.PageLevel * 15)px">
-                    @if (_page.SectionNumber != null)
-                    {
-                        @_page.SectionNumber<text>.</text>
-                    }
-                    @Html.Raw(hasDraft ? Model.DraftPages[_page].HtmlTitle : _page.HtmlTitle)
-                    @if (hasDraft)
-                    {
-                        <span class="one-em-wide"></span>
-                        <span class="list-item-description">(有修改未发布)</span>
-                    }
-                    @if (isUnpublished)
-                    {
-                        <span class="one-em-wide"></span>
-                        <span class="list-item-description">(未发布)</span>
-                    }
-                </div>
-                <div class="link-row show-on-sel">
-                    @if (!isUnpublished)
-                    {
-                        <a class="link-row-item link-no-underline" href="~/page/@_page.Id">查看</a>
-                    }
-                    <a class="link-row-item link-no-underline" href="~/page/@_page.Id/edit">@((hasDraft || isUnpublished) ? "编辑草稿" : "编辑")</a>
-                    @if (hasDraft || isUnpublished)
-                    {
-                        <a class="link-row-item link-no-underline link-publish-changes" data-tag="@_page.Id" href="#">发布</a>
-                    }
-                    @if (!isMainPage && canAdd)
-                    {
-                        <a class="link-row-item link-no-underline link-add-page" data-tag="@_page.Id" data-tag-option="0" href="#">在上方插入</a>
-                    }
-                    @if (canAdd)
-                    {
-                        <a class="link-row-item link-no-underline link-add-page" data-tag="@_page.Id" data-tag-option="1" href="#">在下方插入</a>
-                    }
-                    @if (!isMainPage && canAdd)
-                    {
-                        <a class="link-row-item link-no-underline link-add-page" data-tag="@_page.Id" data-tag-option="2" href="#">添加子页面</a>
-                    }
-                    @if (!isMainPage)
-                    {
-                        <a class="link-row-item link-no-underline link-delete-page" data-tag="@_page.Id" href="#">删除</a>
-                    }
-                </div>
-            </div>
-
-            hasUnpublished |= hasDraft || isUnpublished;
-        }
-
-        <div style="margin-top:20px">
-            <button class="btn button-yellow link-add-page" data-tag="@lastLevelZeroId" data-tag-option="1">添加页面</button>
-            @if (hasUnpublished)
-            {
-                <div class="one-em-wide"></div>
-                <button class="btn button-yellow link-publish-all" data-tag="@Model.UserCourse.Id">全部发布</button>
-            }
-        </div>
-
-        <h2>删除数据</h2>
-        <button class="btn button-red">删除课程</button>
+    <div class="list-header">
+        页面列表
     </div>
+    @{
+        int lastLevelZeroId = -1;
+        bool hasUnpublished = false,
+            canAdd = Model.UserPages.Count < ManageCourseModel.MaxPagesInCourse;
+    }
+    @foreach (var _page in Model.UserPages)
+    {
+        bool hasDraft = _page.DraftId != null,
+            isUnpublished = !_page.IsPublic,
+            isMainPage = _page.CourseId == _page.Id,
+            canAddSubpage = _page.PageLevel <= 2;
+        if (_page.PageLevel == 0)
+        {
+            lastLevelZeroId = _page.Id;
+        }
+
+        <div class="list-item list-item-unsel">
+            <div class="noselect @(hasDraft ? "page-list-item-has-draft" : isUnpublished ? "page-list-item-unpublished" : "page-list-item-normal")"
+                 style="padding-left: @(_page.PageLevel * 15)px">
+                @if (_page.SectionNumber != null)
+                {
+                    @_page.SectionNumber<text>.</text>
+                }
+                @Html.Raw(hasDraft ? Model.DraftPages[_page].HtmlTitle : _page.HtmlTitle)
+                @if (hasDraft)
+                {
+                    <span class="one-em-wide"></span>
+                    <span class="list-item-description">(有修改未发布)</span>
+                }
+                @if (isUnpublished)
+                {
+                    <span class="one-em-wide"></span>
+                    <span class="list-item-description">(未发布)</span>
+                }
+            </div>
+            <div class="link-row show-on-sel">
+                @if (!isUnpublished)
+                {
+                    <a class="link-row-item link-no-underline" href="~/page/@_page.Id">查看</a>
+                }
+                <a class="link-row-item link-no-underline" href="~/page/@_page.Id/edit">@((hasDraft || isUnpublished) ? "编辑草稿" : "编辑")</a>
+                @if (hasDraft)
+                {
+                    <a class="link-row-item link-no-underline link-confirm" data-page-id="@_page.Id" data-action="delete-draft" data-title="删除草稿" data-message="确认删除草稿吗？" href="#">删除草稿</a>
+                }
+                @if (hasDraft || isUnpublished)
+                {
+                    <a class="link-row-item link-no-underline link-confirm" data-page-id="@_page.Id" data-action="publish" data-title="发布页面" data-message="确认发布页面吗？" href="#">发布</a>
+                }
+                @if (!isMainPage && canAdd)
+                {
+                    <a class="link-row-item link-no-underline link-add-page" data-page-id="@_page.Id" data-action="insert-above" href="#">在上方插入</a>
+                }
+                @if (canAdd)
+                {
+                    <a class="link-row-item link-no-underline link-add-page" data-page-id="@_page.Id" data-action="insert-below" href="#">在下方插入</a>
+                }
+                @if (!isMainPage && canAdd)
+                {
+                    <a class="link-row-item link-no-underline link-add-page" data-page-id="@_page.Id" data-action="insert-subpage" href="#">添加子页面</a>
+                }
+                @if (!isMainPage)
+                {
+                    <a class="link-row-item link-no-underline link-delete" data-page-id="@_page.Id" data-action="delete" data-title="删除页面" data-message="确定删除此页面，以及它的所有子页面吗？删除后页面内容将无法恢复。" href="#">删除</a>
+                }
+            </div>
+        </div>
+
+        hasUnpublished |= hasDraft || isUnpublished;
+    }
+
+    <div style="margin-top:20px">
+        <button class="btn button-yellow link-add-page" data-page-id="@lastLevelZeroId" data-action="insert-below">添加页面</button>
+        @if (hasUnpublished)
+        {
+            <div class="one-em-wide"></div>
+            <button class="btn button-yellow link-confirm" data-page-id="@Model.UserCourse.Id" data-action="publish-all" data-title="发布页面" data-message="确认发布全部页面吗？">全部发布</button>
+        }
+    </div>
+
+    <h2>设置密码</h2>
+    <p>你可以给文档设置密码，这样，别人在输入密码后才能查看这个文档。</p>
+    <div>
+        <form method="post">
+            <input type="hidden" name="PageId" value="@Model.UserCourse.Id" />
+            <input type="hidden" name="Action" value="set-password" />
+            <label>设置密码</label>
+            <div class="flex-row">
+                <div class="flex-can-grow">
+                    <input asp-for="Password" class="form-control textbox-code" spellcheck="false" autocomplete="off" maxlength="64" />
+                </div>
+                <input type="submit" value="保存" class="btn button-yellow" style="margin-left:1em" />
+            </div>
+        </form>
+    </div>
+
+    <h2 style="color:#d54">删除数据</h2>
+    <button class="btn button-red link-delete" data-page-id="@Model.UserCourse.Id" data-action="delete-all" data-title="删除文档" data-message="确认删除文档吗？删除后所有内容将无法恢复！">删除文档</button>
 </div>
 
 @* Dialogs *@
-<div class="dialog" id="dialog-publish-changes" title="发布页面">
-    <div class="med-padding">
-        确定发布页面吗？
-    </div>
+<div class="dialog dialog-confirm">
+    <div class="dialog-content med-padding"></div>
     <hr />
     <div class="dialog-button-row">
         <form method="post">
+            <input type="hidden" name="Action" />
+            <input type="hidden" name="PageId" />
             <button class="btn button-yellow dialog-button dialog-button-confirm">确定</button>
         </form>
         <div class="one-em-wide"></div>
@@ -106,23 +124,10 @@
     </div>
 </div>
 
-<div class="dialog" id="dialog-publish-all" title="发布页面">
-    <div class="med-padding">
-        确定发布全部页面吗？
-    </div>
-    <hr />
-    <div class="dialog-button-row">
-        <form method="post">
-            <button class="btn button-yellow dialog-button dialog-button-confirm">确定</button>
-        </form>
-        <div class="one-em-wide"></div>
-        <button class="btn button-yellow dialog-button">取消</button>
-    </div>
-</div>
-
-<div class="dialog" id="dialog-add-page" title="添加页面">
+<div class="dialog dialog-add-page" title="添加页面">
     <form method="post">
-        <div asp-validation-summary="All" class="text-danger"></div>
+        <input type="hidden" name="Action" />
+        <input type="hidden" name="PageId" />
         <div class="form-group">
             <label asp-for="Input.SectionNumber"></label>
             <input asp-for="Input.SectionNumber" class="form-control textbox-code" id="dialog-section-number-textbox" autocomplete="off" spellcheck="false" maxlength="50" />
@@ -143,13 +148,13 @@
     </form>
 </div>
 
-<div class="dialog" id="dialog-delete-page" title="删除页面">
-    <div class="med-padding">
-        确定删除此页面，以及它的所有子页面吗？删除后页面内容将无法恢复。
-    </div>
+<div class="dialog dialog-delete">
+    <div class="dialog-content med-padding"></div>
     <hr />
     <div class="dialog-button-row">
         <form method="post">
+            <input type="hidden" name="Action" />
+            <input type="hidden" name="PageId" />
             <button class="btn button-red dialog-button dialog-button-confirm">删除</button>
         </form>
         <div class="one-em-wide"></div>

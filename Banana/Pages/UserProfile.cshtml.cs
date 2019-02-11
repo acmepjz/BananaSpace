@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Banana.Data;
+using Banana.Pages.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -12,11 +13,9 @@ namespace Banana.Pages
     {
         private UserPageManager _pageManager;
 
-        public IEnumerable<UserCourse> CreatedCourses { get; set; }
-        public IEnumerable<UserCourse> FollowedCourses { get; set; }
+        public _CourseListPartialModel CourseListPartialModel { get; set; }
 
         public bool IsAdmin { get; set; }
-        public IEnumerable<UserCourse> AllCourseRequests { get; set; }
 
         public UserProfileModel(UserPageManager pageManager)
         {
@@ -29,14 +28,12 @@ namespace Banana.Pages
                 return Actions.RedirectToLoginPage();
 
             var userName = User.Identity.Name;
-            CreatedCourses = _pageManager.GetCoursesByCreator(userName);
-            FollowedCourses = _pageManager.GetCoursesByFollower(userName);
+            CourseListPartialModel = new _CourseListPartialModel(_pageManager)
+            {
+                Courses = _pageManager.GetCoursesByFollower(userName)
+            };
 
             IsAdmin = _pageManager.UserIsAdmin(userName);
-            if (IsAdmin)
-            {
-                AllCourseRequests = _pageManager.GetAllCourseRequests();
-            }
 
             return Page();
         }

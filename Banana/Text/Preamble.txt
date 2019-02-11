@@ -27,24 +27,32 @@
 %%%%%%%%%%    TEXT FORMAT     %%%%%%%%%%
 \tdef\it{\@sett{italic}}
 \tdef\rm{\@setf{italic}}
+\tdef\em{\@ift{italic}{\@setf{italic}}{\@sett{italic}}}
 \tdef\bf{\@sett{bold}}
 \tdef\md{\@setf{bold}}
+\tdef\lt{\@@set{bold}{-2}}
   \let\@it\it
   \let\@rm\rm
+  \let\@em\em
   \let\@bf\bf
   \let\@md\md
-\tdef\em{\@ift{italic}{\@setf{italic}}{\@sett{italic}}}
+  \let\@lt\lt
+\tdef\@togglebf{\@ift{bold}{\@setf{bold}}{\@sett{bold}}}
 \tdef\color#1{\@@set{color}{#1}}
-\tdef\textrm#1{{\rm#1}}
-\tdef\textit#1{{\it#1}}
-\tdef\textbf#1{{\bf#1}}
-\tdef\textmd#1{{\md#1}}
+\tdef\size#1{\@@set{font-size}{#1}}
+\tdef\textrm#1{{\@rm#1}}
+\tdef\textit#1{{\@it#1}}
+\tdef\textbf#1{{\@bf#1}}
+\tdef\textmd#1{{\@md#1}}
+\tdef\textlt#1{{\@lt#1}}
 \tdef\emph#1{{\em#1}}
 \tdef\textcolor#1#2{{\color{#1}#2}}
+\tdef\textsize#1#2{{\size{#1}#2}}
 \tdef\floatleft#1{{\@@set{float}{left}#1}}
 \tdef\floatright#1{{\@@set{float}{right}#1}}
 
-\def\setparsep#1{\@@set{par-sep}{#1}}
+\def\setparsep#1{\@@set{par-sep-below}{#1}}
+\def\setparsepabove#1{\@@set{par-sep-above}{#1}}
 
 
 %%%%%%%%%% SPECIAL CHARACTERS %%%%%%%%%%
@@ -55,6 +63,8 @@
   \asdef``{\@ifmmode{\@u0060\@u0060}{\@u201c}}
 \sdef'{\@ifmmode{\@u0027}{\@u2019}}
   \asdef''{\@ifmmode{\@u0027\@u0027}{\@u201d}}
+\sdef_{\@ifmmode{\@u005f}{\@em}}
+  \asdef__{\@ifmmode{\@u005f\@u005f}{\@togglebf}}
 \sdef
 
 {\@par}
@@ -92,6 +102,8 @@
 \tdef\${\@u0024}
 \tdef\%{\@u0025}
 \tdef\&{\@u0026}
+\tdef\^{\@u005e}
+\tdef\_{\@u005f}
 \tdef\ {\@u0020}
 \tdef\quad{\@u3000}
 \tdef\qquad{\quad\quad}
@@ -152,9 +164,9 @@
 \def\@addquad#1{#1\quad}
   \adef\@addquad\@@bg\@@eg{}
 \def\@colorfulstyle{
-  \def\@thmbegina{\color{20a8e8}\@block{ecf8ff}{44bbee}}
-  \def\@thmbeginb{\color{f07800}\@block{fff8ee}{ffa840}}
-  \def\@thmbeginc{\color{22aa22}\@block{f0f8f0}{66cc66}}
+  \def\@thmbegina{\color{11aadd}\@block{f4f4f4}{11aadd}}
+  \def\@thmbeginb{\color{f07800}\@block{f4f4f4}{f07800}}
+  \def\@thmbeginc{\color{22aa22}\@block{f4f4f4}{22aa22}}
 }
 \tdef\style\@@bg traditional\@@eg{
   \@defenv{@theorem}{#1#2#3}{\par{\@bf\@rm#1\@addsp{#2}.} #3\par}
@@ -268,3 +280,19 @@
 \let\ref\@@ref
 \let\label\@@label
 \def\eqref#1{(\@@ref{#1})}
+
+
+%%%%%%%%%%     TEXT ALIGN     %%%%%%%%%%
+\@defenv{flushleft}{#1}{{\@@set{text-align}{1}\par#1\par}}
+\@defenv{center}{#1}{{\@@set{text-align}{2}\par#1\par}}
+\@defenv{flushright}{#1}{{\@@set{text-align}{3}\par#1\par}}
+
+
+%%%%%%%%%%       IMAGES       %%%%%%%%%%
+\def\image#1{\@@file{#1}}
+  \adef\image[#1~]#2{\@@file{#2:#1}}
+
+
+%%%%%%%%%%    CODE SNIPPETS   %%%%%%%%%%
+\def\code{\@@code}
+\def\codeblock{\@sett{display-code}\@@code}

@@ -109,6 +109,7 @@ namespace Banana.Text
         HtmlTag,
         Bookmark,
         Reference,
+        CodeSnippet,
         Placeholder   // e.g. <:FILE:1.png>, to be replaced on request
     }
 }

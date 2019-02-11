@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Banana.Data;
+using System.Web;
+using Banana.Text;
 
 namespace Banana.Pages
 {
@@ -28,36 +30,15 @@ namespace Banana.Pages
         public class InputModel
         {
             [Required(ErrorMessage = "{0}不能为空。")]
-            [MaxLength(100, ErrorMessage = "课程标题长度不能超过 100 字符。")]
-            [Display(Name = "课程标题")]
+            [MaxLength(100, ErrorMessage = "标题长度不能超过 100 字符。")]
+            [Display(Name = "文档标题")]
             public string Title { get; set; }
-
-            [Required(ErrorMessage = "{0}不能为空。")]
-            [MaxLength(50, ErrorMessage = "课程类型长度不能超过 50 字符。")]
-            [Display(Name = "课程类型")]
-            public string Type { get; set; }
         }
 
-        public IActionResult OnGet(string requestId = null)
+        public IActionResult OnGet()
         {
             if (User?.Identity.IsAuthenticated != true)
                 return Actions.RedirectToLoginPage();
-
-            if (requestId != null && _pageManager.UserIsAdmin(User.Identity.Name) &&
-                int.TryParse(requestId, out int id))
-            {
-                var course = _pageManager.GetCourse(id);
-                if (course == null || course.Status != CourseStatus.Request)
-                    return NotFound();
-
-                IsAdmin = true;
-                RequestId = id;
-                Input = new InputModel
-                {
-                    Title = course.Title,
-                    Type = course.Type
-                };
-            }
 
             return Page();
         }
@@ -69,33 +50,13 @@ namespace Banana.Pages
 
             if (ModelState.IsValid)
             {
-                _pageManager.NewCourseRequest(Input.Title, Input.Type, User.Identity.Name);
-                return Actions.RedirectToUserPage();
-            }
+                string userName = User.Identity.Name;
 
-            return Page();
-        }
+                // each user is allowed to create at most 100 courses
+                if (_pageManager.GetCoursesByCreator(userName).Count() >= 100)
+                    return Actions.Status418();
 
-        public IActionResult OnPostConfirm(int requestId)
-        {
-            if (User?.Identity.IsAuthenticated != true)
-                return Actions.RedirectToLoginPage();
-            if (!_pageManager.UserIsAdmin(User.Identity.Name))
-                return NotFound();
-
-            if (ModelState.IsValid)
-            {
-                var course = _pageManager.GetCourse(requestId);
-                if (course == null || course.Status != CourseStatus.Request)
-                    return NotFound();
-
-                _pageManager.Update(course);
-                course.Title = Input.Title;
-                course.Type = Input.Type;
-                course.Status = CourseStatus.Normal;
-                course.CreationDate = DateTime.Now;
-                course.LastUpdatedDate = DateTime.Now;
-                course.LastUpdatedPageId = course.MainPageId;
+                var course = _pageManager.NewCourse(User.Identity.Name);
 
                 // remove possible duplicate before adding main page
                 var duplicate = _pageManager.GetPage(course.MainPageId);
@@ -103,40 +64,28 @@ namespace Banana.Pages
                     _pageManager.Remove(duplicate);
 
                 // create main page of the course
+                var now = DateTime.Now;
                 var page = new UserPage
                 {
                     Id = course.MainPageId,
                     CourseId = course.MainPageId,
-                    CreationDate = DateTime.Now,
-                    LastModifiedDate = DateTime.Now,
+                    CreationDate = now,
+                    LastModifiedDate = now,
                     IsPublic = true,
                     Title = course.Title,
-                    HtmlTitle = course.Title
+                    HtmlTitle = HttpUtility.HtmlEncode(course.Title)
                 };
-                _pageManager.AddPage(page, 0);
 
+                string htmlTitle = Parser.ToHtml(Input.Title, page, ParserOptions.SingleLine, out var data);
+
+                _pageManager.AddPage(page, 0);
+                _pageManager.Update(course);
+                course.Title = htmlTitle;
                 _pageManager.SaveChanges();
                 return Actions.RedirectToUserPage();
             }
 
             return Page();
-        }
-
-        public IActionResult OnPostReject(int requestId)
-        {
-            if (User?.Identity.IsAuthenticated != true)
-                return Actions.RedirectToLoginPage();
-            if (!_pageManager.UserIsAdmin(User.Identity.Name))
-                return NotFound();
-
-            var course = _pageManager.GetCourse(requestId);
-            if (course == null || course.Status != CourseStatus.Request)
-                return NotFound();
-
-            _pageManager.Remove(course);
-
-            _pageManager.SaveChanges();
-            return Actions.RedirectToUserPage();
         }
     }
 }

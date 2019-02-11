@@ -21,29 +21,25 @@ namespace Banana.Pages
         public IActionResult OnPost()
         {
             if (!User.Identity.IsAuthenticated)
-                return Actions.ImATeapot();
-
+                return BadRequest();
             var form = Request.Form;
             if (form == null)
-                return Actions.ImATeapot();
-
+                return BadRequest();
             var pageId = form["PageId"];
             if (!int.TryParse(pageId, out int id))
-                return Actions.ImATeapot();
-            
+                return BadRequest();
             var page = _pageManager.GetPage(id);
             if (page == null)
-                return Actions.ImATeapot();
-
+                return BadRequest();
             if (!_pageManager.UserCanEdit(User.Identity.Name, page))
-                return Actions.ImATeapot();
+                return BadRequest();
 
             var action = form["Action"];
             switch (action)
             {
                 case "upload":
                     if (form.Files == null || form.Files.Count != 1)
-                        return Actions.ImATeapot();
+                        return BadRequest();
 
                     var file = form.Files.Single();
                     // TODO: check file name
@@ -55,18 +51,18 @@ namespace Banana.Pages
                 case "delete":
                     string fileName = form["FileName"];
                     if (fileName == null)
-                        return Actions.Status400();
+                        return BadRequest();
 
                     var result = _pageManager.DeleteFile(page, fileName);
                     if (result == false)
-                        return Actions.Status400();
+                        return BadRequest();
                     if (result == null)
                         return Actions.Status500();
 
                     return Page();
 
                 default:
-                    return Actions.Status400();
+                    return BadRequest();
             }
         }
     }

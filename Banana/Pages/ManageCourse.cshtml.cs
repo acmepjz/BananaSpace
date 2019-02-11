@@ -33,6 +33,11 @@ namespace Banana.Pages
             public string Title { get; set; }
         }
 
+        [BindProperty]
+        [Display(Name = "设置密码")]
+        [MaxLength(64)]
+        public string Password { get; set; }
+
         public ManageCourseModel(UserPageManager pageManager)
         {
             _pageManager = pageManager;
@@ -54,7 +59,9 @@ namespace Banana.Pages
                     if (page.DraftId != null)
                         DraftPages.Add(page, _pageManager.GetPage((int)page.DraftId));
 
-                ViewData["Title"] = "课程管理: " + UserCourse.Title;
+                Password = UserCourse.Password;
+
+                ViewData["Title"] = "管理文档";
                 return Page();
             }
 
@@ -83,150 +90,126 @@ namespace Banana.Pages
             }
         }
 
-        public IActionResult OnPostPublish(int id)
+        public IActionResult OnPost(int id)
         {
-            if (User?.Identity.IsAuthenticated == true)
+            if (User?.Identity.IsAuthenticated != true) return Forbid();
+            var form = Request.Form;
+            if (form == null) return BadRequest();
+            string action = form["Action"];
+            if (action == null) return BadRequest();
+            if (!int.TryParse(form["PageId"], out int pageId)) return BadRequest();
+            var page = _pageManager.GetPage(pageId);
+            if (page == null || page.CourseId != id) return BadRequest();
+            var course = _pageManager.GetCourse(id);
+            if (!(User.Identity.Name == course.Creator || _pageManager.UserIsAdmin(User.Identity.Name))) return Forbid();
+            var pages = _pageManager.GetAllPages(id).ToList();
+            var now = DateTime.Now;
+
+            switch (action)
             {
-                var page = _pageManager.GetPage(id);
-                if (page == null)
-                    return NotFound();
-
-                var course = _pageManager.GetCourse(page.CourseId);
-                if (!(User.Identity.Name == course.Creator || _pageManager.UserIsAdmin(User.Identity.Name)))
-                    return NotFound();
-
-                PublishPage(page, DateTime.Now);
-                _pageManager.SaveChanges();
-
-                return LocalRedirect($"~/page/{id}");
-            }
-
-            return NotFound();
-        }
-
-        public IActionResult OnPostPublishAll(int id)
-        {
-            if (User?.Identity.IsAuthenticated == true)
-            {
-                var course = _pageManager.GetCourse(id);
-                if (!(User.Identity.Name == course.Creator || _pageManager.UserIsAdmin(User.Identity.Name)))
-                    return NotFound();
-
-                var pages = _pageManager.GetAllPages(id).ToList();
-                var now = DateTime.Now;
-                foreach (var page in pages)
+                case "publish":
                     PublishPage(page, now);
-                _pageManager.SaveChanges();
+                    _pageManager.SaveChanges();
+                    return LocalRedirect($"~/page/{pageId}");
 
-                return LocalRedirect($"~/manage/{id}");
-            }
+                case "publish-all":
+                    foreach (var p in pages)
+                        PublishPage(p, now);
+                    _pageManager.SaveChanges();
+                    return LocalRedirect($"~/manage/{id}");
 
-            return NotFound();
-        }
+                case "insert-above":
+                case "insert-below":
+                case "insert-subpage":
+                    // validate
+                    if (page.Id == course.MainPageId && action != "insert-below")
+                        return BadRequest();
+                    if (page.PageLevel > 2 && action == "insert-subpage")
+                        return BadRequest();
+                    if (pages.Count >= MaxPagesInCourse)
+                        return BadRequest();
 
-        public IActionResult OnPostAddPage(int id, int option)
-        {
-            // option: 0 - insert above; 1 - insert below; 2 - insert as subpage
+                    // create and add the page
+                    int index = pages.IndexOf(page),
+                        level = page.PageLevel;
 
-            if (User?.Identity.IsAuthenticated == true)
-            {
-                var page = _pageManager.GetPage(id);
-                if (page == null)
-                    return NotFound();
-
-                var course = _pageManager.GetCourse(page.CourseId);
-                if (!(User.Identity.Name == course.Creator || _pageManager.UserIsAdmin(User.Identity.Name)))
-                    return NotFound();
-
-                var pages = _pageManager.GetAllPages(course.Id).ToList();
-
-                // validate
-                if (page.Id == course.MainPageId && option != 1)
-                    return NotFound();
-                if (page.PageLevel > 2 && option == 2)
-                    return NotFound();
-                if (pages.Count >= MaxPagesInCourse)
-                    return NotFound();
-
-                // create and add the page
-                int index = pages.IndexOf(page),
-                    level = page.PageLevel;
-
-                if (option == 1 || option == 2)
-                {
-                    index++;
-                    while (index < pages.Count && pages[index].PageLevel > level)
+                    if (action != "insert-above")
+                    {
                         index++;
-                    if (option == 2)
-                        level++;
-                }
+                        while (index < pages.Count && pages[index].PageLevel > level)
+                            index++;
+                        if (action == "insert-subpage")
+                            level++;
+                    }
 
-                string sectionNumber = Input.SectionNumber?.Trim();
-                if (sectionNumber != null && sectionNumber.Length > 50)
-                    sectionNumber = sectionNumber.Substring(0, 50);
-                if (string.IsNullOrWhiteSpace(sectionNumber))
-                    sectionNumber = null;
-                string theoremPrefix = sectionNumber;
-                if (theoremPrefix != null)
-                {
-                    theoremPrefix = " " + theoremPrefix;
-                    for (int i = theoremPrefix.Length - 1; i >= 0; i--)
-                        if (char.IsWhiteSpace(theoremPrefix[i]))
-                        {
-                            theoremPrefix = theoremPrefix.Substring(i + 1);
-                            break;
-                        }
-                }
+                    string sectionNumber = Input.SectionNumber?.Trim();
+                    if (sectionNumber != null && sectionNumber.Length > 50)
+                        sectionNumber = sectionNumber.Substring(0, 50);
+                    if (string.IsNullOrWhiteSpace(sectionNumber))
+                        sectionNumber = null;
 
-                int newId = _pageManager.NewId();
-                var now = DateTime.Now;
-                string title = string.IsNullOrWhiteSpace(Input.Title) ? "无标题" : Input.Title;
-                if (title.Length > 100)
-                    title = sectionNumber.Substring(0, 100);
+                    int newId = _pageManager.NewId();
+                    string title = string.IsNullOrWhiteSpace(Input.Title) ? "无标题" : Input.Title;
+                    if (title.Length > 100)
+                        title = sectionNumber.Substring(0, 100);
 
-                var newPage = new UserPage
-                {
-                    CourseId = course.Id,
-                    CreationDate = now,
-                    Id = newId,
-                    IsPublic = false,
-                    LastModifiedDate = now,
-                    PageLevel = level,
-                    SectionNumber = sectionNumber,
-                    TheoremPrefix = theoremPrefix,
-                    Title = title
-                };
-                newPage.HtmlTitle = Parser.ToHtml(title, newPage, ParserOptions.SingleLine, out var data);
-                _pageManager.AddPage(newPage, index);
+                    var newPage = new UserPage
+                    {
+                        CourseId = course.Id,
+                        CreationDate = now,
+                        Id = newId,
+                        IsPublic = false,
+                        LastModifiedDate = now,
+                        PageLevel = level,
+                        SectionNumber = sectionNumber,
+                        Title = title
+                    };
+                    newPage.HtmlTitle = Parser.ToHtml(title, newPage, ParserOptions.SingleLine, out var data);
+                    _pageManager.AddPage(newPage, index);
 
-                _pageManager.SaveChanges();
-                return LocalRedirect($"~/manage/{course.Id}");
+                    _pageManager.SaveChanges();
+                    return LocalRedirect($"~/manage/{course.Id}");
+
+                case "delete":
+                    if (page.Id == course.MainPageId)
+                        return BadRequest();
+
+                    _pageManager.DeletePage(page);
+                    _pageManager.SaveChanges();
+                    return LocalRedirect($"~/manage/{course.Id}");
+
+                case "delete-draft":
+                    if (page.DraftId == null)
+                        return BadRequest();
+
+                    _pageManager.DeleteDraftPage(page.DraftId ?? -1);
+                    _pageManager.Update(page);
+                    page.DraftId = null;
+                    _pageManager.SaveChanges();
+                    return LocalRedirect($"~/manage/{course.Id}");
+
+                case "delete-all":
+                    _pageManager.DeleteCourse(id);
+                    _pageManager.SaveChanges();
+                    return Actions.RedirectToUserPage();
+
+                case "set-password":
+                    if (Password != null && Password.Length > 64)
+                        return BadRequest();
+
+                    var oldPassword = course.Password;
+                    var newPassword = string.IsNullOrWhiteSpace(Password) ? null : Password.Trim();
+                    if (oldPassword != newPassword)
+                    {
+                        _pageManager.Update(course);
+                        course.Password = newPassword;
+                        _pageManager.SaveChanges();
+                    }
+                    return LocalRedirect($"~/manage/{course.Id}");
+
+                default:
+                    return BadRequest();
             }
-
-            return NotFound();
-        }
-
-        public IActionResult OnPostDeletePage(int id)
-        {
-            if (User?.Identity.IsAuthenticated == true)
-            {
-                var page = _pageManager.GetPage(id);
-                if (page == null)
-                    return NotFound();
-
-                var course = _pageManager.GetCourse(page.CourseId);
-                if (!(User.Identity.Name == course.Creator || _pageManager.UserIsAdmin(User.Identity.Name)))
-                    return NotFound();
-
-                if (page.Id == course.MainPageId)
-                    return NotFound();
-
-                _pageManager.DeletePage(page);
-                _pageManager.SaveChanges();
-                return LocalRedirect($"~/manage/{course.Id}");
-            }
-
-            return NotFound();
         }
     }
 }

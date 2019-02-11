@@ -1,0 +1,29 @@
+﻿@page
+@model Banana.Pages.ViewSourceModel
+@{
+    ViewData["Title"] = "源代码: " + Model.UserPage.Title;
+}
+
+<div>
+    <div class="page-body">
+        <div class="box med-padding">
+            <h1 class="box-h1">
+                源代码: @Html.Raw(Model.PageTitle)
+            </h1>
+
+            <textarea class="textarea-code" readonly>@Model.UserPage.Content</textarea>
+        </div>
+    </div>
+    <div class="sidebar">
+        <partial name="Shared/_PageListPartial" model="Model._PageListPartialModel" />
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/codemirror/lib/codemirror.js"></script>
+    <script src="~/lib/codemirror/mode/tex.js" asp-append-version="true"></script>
+}
+
+@section Stylesheets {
+    <link rel="stylesheet" href="~/lib/codemirror/lib/codemirror.css" />
+}

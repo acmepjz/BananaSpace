@@ -3,53 +3,58 @@ for details on configuring this project to bundle and minify static web assets. 
 
 @font-face {
     font-family: 'Open Sans';
-    src: url(/fonts/OpenSans-Regular.ttf);
+    src: url(/fonts/OpenSans-Regular.woff) format('woff');
 }
 
 @font-face {
     font-family: 'Open Sans';
     font-style: italic;
-    src: url(/fonts/OpenSans-Italic.ttf);
+    src: url(/fonts/OpenSans-Italic.woff) format('woff');
 }
 
 @font-face {
     font-family: 'Open Sans';
     font-weight: bold;
-    src: url(/fonts/OpenSans-Bold.ttf);
+    src: url(/fonts/OpenSans-Bold.woff) format('woff');
 }
 
 @font-face {
     font-family: 'Open Sans';
     font-weight: bold;
     font-style: italic;
-    src: url(/fonts/OpenSans-BoldItalic.ttf);
+    src: url(/fonts/OpenSans-BoldItalic.woff) format('woff');
 }
 
 @font-face {
     font-family: 'Open Sans';
     font-weight: 300;
-    src: url(/fonts/OpenSans-Light.ttf);
+    src: url(/fonts/OpenSans-Light.woff) format('woff');
 }
 
 @font-face {
     font-family: 'Open Sans';
     font-weight: 300;
     font-style: italic;
-    src: url(/fonts/OpenSans-LightItalic.ttf);
+    src: url(/fonts/OpenSans-LightItalic.woff) format('woff');
+}
+
+@font-face {
+    font-family: Menlo;
+    src: url(/fonts/Menlo-Regular.woff) format('woff');
 }
 
 html {
     height: 100%;
+    font-size: 10px;
 }
 
 body {
-    padding-top: 75px;
-    padding-bottom: 50px;
+    padding-top: 7.5rem;
+    padding-bottom: 5rem;
     position: relative;
-    box-sizing: border-box;
     min-height: 100%;
     font-family: 'Open Sans', Arial, 'Microsoft YaHei', sans-serif;
-    font-size: 16px;
+    font-size: 1.6rem;
     background: #fafaf8;
 }
 
@@ -58,14 +63,14 @@ footer {
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 40px;
-    padding-top: 10px;
+    height: 4rem;
+    padding-top: 1rem;
     background-color: #333;
     color: gray;
 }
 
 .footer {
-    font-size: 14px;
+    font-size: 1.4rem;
     display: flex;
     align-items: baseline;
     justify-content: center;
@@ -76,16 +81,16 @@ footer {
 }
 
 .header-navbar {
-    background: #fee630;
-    height: 60px;
-    padding-top: 12px;
-    border-bottom-width: 1px;
-    border-bottom-color: #e0c820;
+    background: #f8ea58;
+    height: 6rem;
+    min-height: 6rem;
+    padding-top: 1.2rem;
+    box-shadow: 0 0 20px 0 rgba(0,0,0,.15);
 }
 
 .header-row {
     width: 100%;
-    height: 40px;
+    height: 4rem;
     margin-left: 0;
     margin-right: 0;
     display: flex;
@@ -98,15 +103,15 @@ footer {
 }
 
 .header-image-link {
-    background-image: url(/images/banana-title.png);
+    background-image: url(/images/banana-titlebar.svg);
     background-size: contain;
     background-repeat: no-repeat;
-    width: 210px;
-    height: 40px;
+    width: 21rem;
+    height: 4rem;
 }
 
 .header-login-div {
-    height: 40px;
+    height: 4rem;
     display: flex;
     flex-grow: 1;
     justify-content: flex-end;
@@ -118,7 +123,7 @@ footer {
     color: #333;
 }
 
-    .header-username:hover {
+    .header-username:hover, .header-username:focus, .header-button:focus {
         color: #000;
     }
 
@@ -129,34 +134,35 @@ footer {
 }
 
     .header-button:hover {
-        background-color: #fee630;
+        background-color: #f8ea58;
         background-color: rgba(50,50,50,.05);
         color: #000;
     }
 
 h1 {
-    color: #e86010;
+    color: #f07030;
     font-family: 'Open Sans', 'Trebuchet MS', Arial, 'Microsoft YaHei', sans-serif;
     font-weight: 300;
+    font-size: 3.6rem;
 }
 
 .box-h1 {
     margin-top: 0;
-    margin-bottom: 40px;
+    margin-bottom: 4rem;
 }
 
 h2 {
-    color: #a20;
+    color: #1bd;
     font-family: 'Open Sans', 'Trebuchet MS', Arial, 'Microsoft YaHei', sans-serif;
-    margin-top: 30px;
-    margin-bottom: 20px;
+    margin-top: 3rem;
+    margin-bottom: 2rem;
 }
 
 .button-yellow {
-    background-color: #fee630;
+    background-color: #f8ea58;
     border-radius: 0;
     color: #333;
-    font-size: 16px;
+    font-size: 1.6rem;
     padding: .3em 1.2em .4em 1.2em;
 }
 
@@ -174,9 +180,9 @@ h2 {
     background-color: #e00;
     border-radius: 0;
     color: #fff;
-    font-size: 16px;
-    font-weight: bold;
+    font-size: 1.6rem;
     padding: .3em 1.2em .4em 1.2em;
+    font-weight: bold;
 }
 
     .button-red:hover {
@@ -193,11 +199,6 @@ h2 {
     padding: 0 1em 0 0;
 }
 
-.text-highlight {
-    color: #e86010;
-    font-size: 20px;
-}
-
 .login-div-column {
     max-width: 500px;
     margin: 1.5rem;
@@ -206,22 +207,23 @@ h2 {
 .box {
     background-color: #fff;
     box-shadow: 0 0 10px 0 rgba(0,0,0,.2);
-    margin-top: 20px;
-    margin-bottom: 20px;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    min-height: 5rem;
 }
 
 .box-title {
     width: 100%;
-    font-size: 18px;
+    font-size: 1.8rem;
     font-weight: bold;
-    background-color: #fee630;
+    background-color: #f8ea58;
     padding: .3em 1em .3em 1em;
 }
 
 .logo-container {
-    font-size: 32px;
+    font-size: 3.2rem;
     text-align: center;
-    padding: 20px 0 40px 0;
+    padding: 2rem 2rem 4rem 2rem;
 }
 
 .logo {
@@ -230,13 +232,18 @@ h2 {
     background-repeat: no-repeat;
     background-position: center top;
     height: 60vh;
-    min-height: 300px;
-    max-height: 450px;
+    min-height: 20rem;
+    max-height: 45rem;
 }
 
 .not-too-wide {
     width: 100%;
     max-width: 800px;
+}
+
+.not-too-long {
+    max-height: 80rem;
+    overflow-y: auto;
 }
 
 .not-wide {
@@ -245,29 +252,29 @@ h2 {
 }
 
 .large-padding {
-    padding: 40px;
+    padding: 4rem;
 }
 
 .med-padding {
-    padding: 20px;
+    padding: 2rem;
+}
+
+.small-padding {
+    padding: .5rem 1rem;
 }
 
 .large-margin-top {
-    margin-bottom: 50px;
-    margin-top: 50px;
-}
-
-.med-margin-right {
-    margin-right: 20px;
+    margin-bottom: 5rem;
+    margin-top: 5rem;
 }
 
 .small-margin {
-    margin: 5px;
+    margin: .5rem;
 }
 
 .small-margin-top {
-    margin-bottom: 5px;
-    margin-top: 5px;
+    margin-bottom: .5rem;
+    margin-top: .5rem;
 }
 
 .course-list-container {
@@ -276,9 +283,9 @@ h2 {
 }
 
 .list-header {
-    font-size: 18px;
+    font-size: 1.8rem;
     font-weight: bold;
-    background-color: #fee630;
+    background-color: #f8ea58;
     padding: .3em 1em .3em 1em;
 }
 
@@ -289,7 +296,8 @@ h2 {
 }
 
 .list-item {
-    background-color: #fff;
+    background-color: inherit;
+    color: #1ad;
     border-style: solid;
     border-width: 0 0 1px 0;
     border-color: #ddd;
@@ -302,8 +310,13 @@ h2 {
         background-color: #eee;
     }
 
-.list-item-narrow {
-    padding: .3em .5em;
+.list-item-creator {
+    background-color: #f4faff;
+}
+
+.list-item-plain {
+    color: #1ad;
+    padding: .2em 0;
 }
 
 .link-no-underline {
@@ -319,22 +332,27 @@ h2 {
     }
 
 .list-item-header {
-    color: #e86010;
-    font-size: 20px;
+    font-size: 2rem;
+    margin-bottom: -.2rem;
     font-family: 'Open Sans', 'Trebuchet MS', Arial, 'Microsoft YaHei', sans-serif;
     display: flex;
     align-items: center;
 }
 
 .list-item-header-description {
-    color: gray;
-    font-size: 14px;
+    color: #aaa;
+    font-size: 1.4rem;
     margin-left: 1em;
 }
 
 .list-item-description {
-    color: gray;
-    font-size: 14px;
+    color: #aaa;
+    font-size: 1.4rem;
+    max-width: 100%;
+    max-height: 3em;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .list-item-current {
@@ -355,26 +373,26 @@ h2 {
 }
 
 .link-row {
-    margin-top: 5px;
+    margin-top: .5rem;
 }
 
 .link-row-item {
-    margin: 10px;
-    margin-right: 10px;
+    margin: 1rem;
+    margin-right: 1rem;
 }
 
 .page-list-item-normal {
-    font-size: 18px;
+    font-size: 1.8rem;
 }
 
 .page-list-item-unpublished {
-    font-size: 18px;
+    font-size: 1.8rem;
     color: darkgray;
 }
 
 .page-list-item-has-draft {
-    font-size: 18px;
-    color: #2b2;
+    font-size: 1.8rem;
+    color: #88c010;
 }
 
 .ui-widget, .ui-widget button, .ui-widget input {
@@ -382,7 +400,7 @@ h2 {
 }
 
 .ui-widget-header {
-    background: #fee630;
+    background: #f8ea58;
     border-color: white;
 }
 
@@ -400,27 +418,27 @@ h2 {
     justify-content: flex-end;
 }
 
-/* ViewPage.cshtml */
-
 .page-body {
-    width: 75%;
+    width: 70%;
+    width: calc(75% - 2rem);
+    float: left;
 }
 
 .user-page-content {
-    font-size: 18px;
+    font-size: 1.8rem;
     text-align: justify;
     line-height: 1.6;
     color: black;
+    word-break: break-word;
 }
 
 .user-page-content p {
-    margin-bottom: 18px;
+    margin-bottom: 1.8rem;
 }
 
 .sidebar {
     width: 25%;
     float: right;
-    margin-top: -20px;
 }
 
 .flex-row {
@@ -429,26 +447,31 @@ h2 {
     justify-content: center;
 }
 
+.flex-can-grow {
+    flex-grow: 1;
+}
+
 .text-small {
-    font-size: 14px;
+    font-size: 1.4rem;
 }
 
 /* EditPage.cshtml */
 
 .textbox-code, .ui-widget input.textbox-code {
     width: 100%;
-    font-family: Consolas, 'Microsoft YaHei', monospace;
+    font-family: Menlo, 'Microsoft YaHei', monospace;
+    font-size: 1.4rem;
     tab-size: 4;
     resize: none;
 }
 
-pre.error-message {
-    font-size: 14px;
-    font-family: 'DejaVu Sans Mono', 'Microsoft YaHei', monospace;
-    border-width: 0 0 0 5px;
+.error-message {
+    font-size: 1.4rem;
+    font-family: Menlo, 'Microsoft YaHei', monospace;
+    border-width: 0 0 0 .4rem;
     border-color: #f44;
     border-radius: 0;
-    padding: 10px 20px;
+    padding: 1rem 2rem;
     background-color: #fff2f2;
     color: #f22;
     white-space: pre-wrap;
@@ -461,20 +484,22 @@ pre.error-message {
 
 .editor-container {
     width: 50%;
-    width: calc(50% - 10px);
+    width: calc(50% - 1rem);
     position: fixed;
 }
 
     .editor-container .box {
-        margin: 10px;
-        min-height: 200px;
-        height: calc(100vh - 145px);
+        margin: 1rem;
+        min-height: 20rem;
+        height: calc(100vh - 14.5rem);
         display: flex;
         flex-direction: column;
     }
 
         .editor-container .box h1 {
-            margin-bottom: 30px;
+            margin-bottom: 1rem;
+            height: 2em;
+            overflow-y: auto;
         }
 
         .editor-container .box form {
@@ -486,13 +511,13 @@ pre.error-message {
 
 .previewer-container {
     width: 50%;
-    width: calc(50% - 10px);
+    width: calc(50% - 1rem);
     float: right;
 }
 
     .previewer-container .box {
-        margin: 10px;
-        min-height: calc(100vh - 145px);
+        margin: 1rem;
+        min-height: calc(100vh - 14.5rem);
         overflow-x: hidden;
     }
 
@@ -500,7 +525,7 @@ pre.error-message {
     flex-grow: 1;
     display: flex;
     align-items: stretch;
-    margin-bottom: 20px;
+    margin-bottom: 2rem;
     /* IE and Edge bug: leaving 'height: auto' as default will cause CodeMirror to expand below page bottom */
     height: 0;
 }
@@ -543,20 +568,28 @@ pre.error-message {
         color: #000;
     }
 
+    .editor-tab-link:focus {
+        color: #000;
+    }
+
 .editor-tab-link-active {
     transform: rotate(90deg);
-    background-color: #fee630;
+    background-color: #f8ea58;
     margin: 1em 0 1.2em 0;
+    border-bottom-left-radius: .8rem;
+    border-bottom-right-radius: .8rem;
 }
 
 .editor-tab-link-inactive {
     transform: rotate(90deg);
     background-color: #e8e8e8;
     margin: 1em 0 1.2em 0;
+    border-bottom-left-radius: .8rem;
+    border-bottom-right-radius: .8rem;
 }
 
 .editor-form-groups {
-    margin-left: 20px;
+    margin-left: 2rem;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -570,16 +603,19 @@ pre.error-message {
 
 /* CodeMirror */
 
+.textarea-code {
+    display: none;
+}
+
 .CodeMirror, .textarea-code {
-    font-family: 'DejaVu Sans Mono', 'Microsoft YaHei', monospace;
-    font-size: 14px;
-    min-height: 300px;
+    font-family: Menlo, 'Microsoft YaHei', monospace;
+    font-size: 1.4rem;
     height: 100%;
     flex-grow: 1;
 }
 
     .CodeMirror pre {
-        padding-left: 8px;
+        padding-left: .8rem;
     }
 
 .CodeMirror-selected {
@@ -588,10 +624,6 @@ pre.error-message {
 
 .CodeMirror-focused .CodeMirror-selected {
     background: #d8e8f8;
-}
-
-.CodeMirror-lines {
-    min-height: 300px;
 }
 
 .CodeMirror-line::selection, .CodeMirror-line > span::selection, .CodeMirror-line > span > span::selection {
@@ -603,17 +635,17 @@ pre.error-message {
 }
 
 .CodeMirror-gutters {
-    font-size: 12px;
+    font-size: 1.2rem;
     background-color: inherit;
-    padding-left: 10px;
-    padding-right: 5px;
+    padding-left: 1rem;
+    padding-right: .5rem;
     border-right: 1px solid #eee;
 }
 
 .CodeMirror-linenumber {
     color: #aaa;
-    font-size: 12px;
-    padding-top: 2.5px;
+    font-size: 1.2rem;
+    padding-top: .25rem;
 }
 
 .CodeMirror-code {
@@ -639,8 +671,8 @@ pre.error-message {
 }
 
 .CodeMirror-hints {
-    width: 200px;
-    font-family: 'DejaVu Sans Mono', 'Microsoft YaHei', monospace;
+    width: 20rem;
+    font-family: Menlo, 'Microsoft YaHei', monospace;
 }
 
 .CodeMirror-hint {
@@ -652,8 +684,12 @@ pre.error-message {
     background-color: #e8f4ff !important;
 }
 
+.CodeMirror-placeholder {
+    color: #ccc !important;
+}
+
 .cm-special, .cm-command {
-    color: #19c;
+    color: #1ad;
 }
 
 .cm-environment, .cm-label, .cm-argument {
@@ -673,49 +709,54 @@ pre.error-message {
 }
 
 .file-box {
-    background-color: #fafafa;
     border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 15px;
     flex-grow: 1;
     overflow-y: auto;
+}
+
+.file-list {
+    margin-bottom: 1rem;
 }
 
 .file-list-item {
     display: flex;
     align-items: center;
-    padding: 5px;
+    padding: .5rem 1rem;
 }
 
 .file-list-item-name {
     font-weight: bold;
     width: 25%;
     overflow-x: hidden;
-    text-wrap: none;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 
 .file-progress-container {
     flex-grow: 1;
-    margin-left: 20px;
+    margin-left: 2rem;
 }
 
 .file-progress {
     width: 100%;
-    height: 7px;
-    background-color: #ecece4;
+    height: .7rem;
+    background-color: #eee;
+    background-color: rgba(128,128,128,.1);
     overflow-y: hidden;
 }
 
 .file-progress-inner {
-    height: 7px;
+    height: .7rem;
     color: #f8d800;
     background-color: #f8d800;
 }
 
 .file-progress-inner::before {
     content: ".";
+}
+
+.file-upload-link {
+    margin-left: 1.5rem;
 }
 
 /* Others */
@@ -745,14 +786,19 @@ pre.error-message {
 }
 
 .paragraph {
-    margin-bottom: 18px;
+    margin-bottom: 1.8rem;
 }
 
+    .paragraph img {
+        max-width: 100%;
+        max-height: 100rem;
+    }
+
 .block-paragraph {
-    margin-bottom: 18px;
+    margin-bottom: 1.8rem;
     border-style: solid;
-    border-width: 0 0 0 5px;
-    padding: 12px 20px 14px 20px;
+    border-width: 0 0 0 .4rem;
+    padding: 1.2rem 2rem 1.4rem 2rem;
 }
 
 .enum-item:last-child > .enum-item-label > .paragraph:last-child,
@@ -766,27 +812,94 @@ pre.error-message {
     .enum-item:last-child > .enum-item-content > .paragraph:last-child .MathJax_Display,
     .block-paragraph > .paragraph:last-child > span:last-child .MJXp-display,
     .block-paragraph > .paragraph:last-child > span:last-child .MathJax_Display {
-        margin-bottom: 6px;
+        margin-bottom: .6rem;
     }
 
 .bookmark {
     width: 1px;
     height: 1px;
     position: absolute;
-    margin-top: -75px;
+    margin-top: -7.5rem;
+}
+
+code {
+    font-family: Menlo, 'Microsoft YaHei', monospace;
+    font-size: 1.4rem;
+    background-color: #f4f4f4;
+    color: #000;
+}
+
+pre.code-snippet {
+    font-family: Menlo, 'Microsoft YaHei', monospace;
+    font-size: 1.4rem;
+    background-color: #f4f4f4;
+    padding: 1.2rem 2rem 1.4rem 2rem;
+    border-radius: 0;
+    border: none;
+    border-left: .4rem solid #1ad;
+    white-space: pre;
+    word-wrap: normal;
+    overflow-x: auto;
 }
 
 /* Hide/rearrange for smaller screens */
 @media screen and (max-width: 767px) {
+    html {
+        font-size: 7px;
+    }
+
+    .container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
     .page-body {
+        float: none;
         width: 100%;
     }
     
     .sidebar {
-        display: none;
+        float: none;
+        width: 100%;
+    }
+
+    .editor-container {
+        position: relative;
+        width: 100%;
+    }
+
+    .previewer-container {
+        width: 100%;
+    }
+
+    .logo-container {
+        font-size: 2.8rem;
+    }
+
+    .logo {
+        height: 30vh;
+        margin-bottom: 2rem;
     }
 
     .large-padding {
-        padding: 20px;
+        padding: 2rem;
+    }
+
+    label {
+        font-size: 16px;
+    }
+
+    .button-large-mobile {
+        font-size: 16px;
+        padding: 3px 25px 4px 25px;
+    }
+
+    .hide-mobile {
+        display: none;
+    }
+
+    .MathJax_Display {
+        overflow-x: auto; /* Horizontally scroll long equations. */
+        overflow-y: hidden;
     }
 }

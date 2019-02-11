@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Banana.Data;
+using Banana.Pages.Shared;
 
 namespace Banana.Pages
 {
@@ -12,10 +13,12 @@ namespace Banana.Pages
     {
         public UserPage UserPage { get; set; }
         public UserCourse UserCourse { get; set; }
-        public IEnumerable<UserPage> AllPagesInCourse { get; set; }
         public bool IsCreatorOrAdmin { get; set; }
+        public bool IsFavorite { get; set; }
         public string PageTitle { get; set; }
         public string PageContent { get; set; }
+
+        public _PageListPartialModel _PageListPartialModel { get; set; }
 
         private UserPageManager _pageManager { get; set; }
 
@@ -24,26 +27,46 @@ namespace Banana.Pages
             _pageManager = pageManager;
         }
 
-        public IActionResult OnGet(string id = null)
+        public IActionResult OnGet(int id)
         {
-            if (int.TryParse(id, out int pageId))
+            UserPage = _pageManager.GetPage(id);
+            if (UserPage == null)
+                return NotFound();
+
+            PageTitle = UserPage.HtmlTitle;
+            PageContent = UserPage.GetFinalHtml(_pageManager, UserPage);
+            UserCourse = _pageManager.GetCourse(UserPage.CourseId);
+            _PageListPartialModel = new _PageListPartialModel(_pageManager, UserCourse, UserPage);
+
+            if (User?.Identity.IsAuthenticated == true)
             {
-                UserPage = _pageManager.GetPage(pageId);
-                if (UserPage == null)
-                    return NotFound();
-
-                PageTitle = UserPage.HtmlTitle;
-                PageContent = UserPage.GetFinalHtml(_pageManager);
-                UserCourse = _pageManager.GetCourse(UserPage.CourseId);
-                AllPagesInCourse = _pageManager.GetAllPages(UserPage.CourseId);
-
-                if (User?.Identity.IsAuthenticated == true)
-                    IsCreatorOrAdmin = User.Identity.Name == UserCourse.Creator ||
-                        _pageManager.UserIsAdmin(User.Identity.Name);
-                return Page();
+                IsCreatorOrAdmin = User.Identity.Name == UserCourse.Creator ||
+                    _pageManager.UserIsAdmin(User.Identity.Name);
+                IsFavorite = _pageManager.UserIsFollower(User.Identity.Name, UserPage.CourseId);
             }
+            return Page();
+        }
 
-            return NotFound();
+        // adding/cancelling favorites is done by posting to this page (via ajax)
+        public IActionResult OnPost(int id)
+        {
+            if (User?.Identity.IsAuthenticated != true) return BadRequest();
+            var form = Request.Form;
+            if (form == null) return BadRequest();
+            bool fav = false;
+            string action = form["Action"];
+            if (action == "add-fav") fav = true;
+            else if (action == "cancel-fav") fav = false;
+            else return BadRequest();
+            UserPage = _pageManager.GetPage(id);
+            if (UserPage == null) return BadRequest();
+            
+            string userName = User.Identity.Name;
+            if (fav) _pageManager.AddToFavorites(userName, UserPage.CourseId);
+            else _pageManager.CancelFavorites(userName, UserPage.CourseId);
+            _pageManager.SaveChanges();
+
+            return Actions.Status200();
         }
     }
 }

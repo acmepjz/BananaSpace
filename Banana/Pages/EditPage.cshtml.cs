@@ -32,18 +32,16 @@ namespace Banana.Pages
             [Display(Name = "页面标题")]
             public string Title { get; set; }
 
-            [MaxLength(500000, ErrorMessage = "内容长度不能超过 500 000 字符。")]
+            [MaxLength(100000, ErrorMessage = "内容长度不能超过 100 000 字符。")]
             [Display(Name = "页面内容")]
             [DataType(DataType.MultilineText)]
             public string Content { get; set; }
 
             [Display(Name = "章节编号")]
             public string SectionNumber { get; set; }
-
-            // uploaded files: Request.Form.Files
         }
 
-        public readonly string ContentUIHint = "在这里输入页面内容。使用 $ ... $ 或 \\[ ... \\] 插入数学公式，使用 \\textbf 和 \\textit 等设置加粗和倾斜。你可以将自己定义的 LaTeX 命令放在开头，但不能使用 \\usepackage。\r\n\r\n编写新页面时，建议在本地编写好后复制到这里。";
+        public readonly string ContentUIHint = "在这里输入 TeX / LaTeX 代码...";
         
         public UserPage UserPage { get; set; }
         public UserPage DraftPage { get; set; }
@@ -67,7 +65,7 @@ namespace Banana.Pages
 
                 var page = DraftPage ?? UserPage;
                 PageTitle = page.Title;
-                PageContent = page.GetFinalHtml(_pageManager);
+                PageContent = page.GetFinalHtml(_pageManager, UserPage);
                 Input = new InputModel
                 {
                     Title = page.Title,
@@ -121,14 +119,27 @@ namespace Banana.Pages
 
             if (publish) // user clicked 'Publish'
             {
+                var now = DateTime.Now;
+                var course = _pageManager.GetCourse(UserPage.CourseId);
                 _pageManager.Update(UserPage);
                 UpdateContent(UserPage, out var data);
                 UserPage.DraftId = null;
-                UserPage.IsPublic = true;
-                UserPage.LastModifiedDate = DateTime.Now;
+                UserPage.LastModifiedDate = now;
 
                 if (DraftPage != null)
                     _pageManager.Remove(DraftPage);
+
+                if (!UserPage.IsPublic) // first publishing
+                {
+                    UserPage.IsPublic = true;
+                    UserPage.CreationDate = UserPage.LastModifiedDate;
+                    _pageManager.Update(course);
+                    course.LastUpdatedDate = now;
+                    course.LastUpdatedPageId = UserPage.Id;
+                }
+
+                if (course.MainPageId == UserPage.Id)
+                    course.Title = UserPage.HtmlTitle;
 
                 UpdateLabels(UserPage, data);
 
@@ -165,8 +176,8 @@ namespace Banana.Pages
 
             _pageManager.SaveChanges();
 
-            string html = "<h1 class=\"box-h1\">" + page.HtmlTitle + "</h1>" +
-                "<div class=\"user-page-content\">" + page.GetFinalHtml(_pageManager) + "</div>";
+            string html = "<h1 class=\"box-h1\">" + (page.SectionNumber == null ? "" : page.SectionNumber + ". ") + page.HtmlTitle + "</h1>" +
+                "<div class=\"user-page-content\">" + page.GetFinalHtml(_pageManager, UserPage) + "</div>";
             return Content(html);
         }
     }
