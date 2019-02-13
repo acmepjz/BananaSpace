@@ -20,24 +20,24 @@ namespace Banana.Text
             if (string.IsNullOrWhiteSpace(s))
                 return "";
 
-            var tokens = Expression.Parse(s, "user");
-
-            // add \@secnum
-            var secNum = new List<Token>();
-            if (!string.IsNullOrWhiteSpace(page.SectionNumber))
-            {
-                foreach (char c in page.SectionNumber)
-                    secNum.Add(new Token(c.ToString(), TokenType.Text, TextPosition.None, TextPosition.None));
-            }
-            var cd = new CommandDefinition("@secnum")
-            {
-                Patterns = { new List<Token>() },
-                Definitions = { secNum }
-            };
-            data.Commands[cd.Name] = cd;
-
             try
             {
+                var tokens = Expression.Parse(s, "user");
+
+                // add \@secnum
+                var secNum = new List<Token>();
+                if (!string.IsNullOrWhiteSpace(page.SectionNumber))
+                {
+                    foreach (char c in page.SectionNumber)
+                        secNum.Add(new Token(c.ToString(), TokenType.Text, TextPosition.None, TextPosition.None));
+                }
+                var cd = new CommandDefinition("@secnum")
+                {
+                    Patterns = { new List<Token>() },
+                    Definitions = { secNum }
+                };
+                data.Commands[cd.Name] = cd;
+
                 Expression.ExpandSpecials(tokens, data);
                 tokens = Expression.ExpandFinal(tokens, data);
 
@@ -49,14 +49,14 @@ namespace Banana.Text
             {
                 if (options.HasFlag(ParserOptions.SingleLine))
                     return "[错误]";
-                return "<p><strong>错误！</strong>代码没有通过编译。以下是错误信息。</p><pre class=\"error-message\">" +
+                return "<p>错误！代码没有通过编译。以下是错误信息。</p><pre class=\"error-message\">" +
                     HttpUtility.HtmlEncode(e.GetMessage()) + "</pre>";
             }
             //catch (Exception e)
             //{
             //    if (options.HasFlag(ParserOptions.SingleLine))
             //        return "[错误]";
-            //    return $"<p><strong>错误！</strong>{e.Message}</p>";
+            //    return $"<p>错误！{e.Message}</p>";
             //}
         }
 
@@ -118,6 +118,15 @@ namespace Banana.Text
             string html = "";
             bool singleLine = options.HasFlag(ParserOptions.SingleLine);
 
+            if (!singleLine)
+            {
+                foreach (var bookmark in data.Bookmarks)
+                {
+                    if (bookmark.Id == -1)
+                        html += $"<a id=\"{bookmark.Label}\" class=\"bookmark-top\"></a>";
+                }
+            }
+
             Token last = null, lastText = null;
             foreach (var token in tokens)
             {
@@ -174,6 +183,8 @@ namespace Banana.Text
                         case TokenType.Text:
                             if (token.Text == " ") // from '\ '
                                 html += "<span style=\"white-space:pre-wrap\"> </span>";
+                            else if (token.Text == "$" || token.Text == "\\")
+                                html += $"<span class=\"tex2jax_ignore\">{token.Text}</span>";
                             else
                                 html += HttpUtility.HtmlEncode(token.Text);
                             break;
@@ -221,28 +232,39 @@ namespace Banana.Text
                             break;
                         case TokenType.Reference:
                             bool flag = false;
+                            string _ref = token.Text, text = null;
+                            if (_ref.Contains(":TEXT:"))
+                            {
+                                int index = _ref.IndexOf(":TEXT:");
+                                text = HttpUtility.HtmlEncode(_ref.Substring(index + 6));
+                                _ref = _ref.Substring(0, index);
+                            }
                             foreach (var bookmark in data.Bookmarks)
-                                if (bookmark.Label == token.Text)
+                                if (bookmark.Label == _ref)
                                 {
                                     string content = ToHtmlFinal(bookmark.Content, ParserOptions.SingleLine);
-                                    html += $"<a href=\"#{bookmark.Label}\">{content}</a>";
+                                    html += $"<a href=\"#{bookmark.Label}\">{text ?? content}</a>";
                                     flag = true;
                                     break;
                                 }
                             if (flag) break;
 
-                            if ((token.Text.StartsWith("http://") || token.Text.StartsWith("https://")) &&
-                                Uri.IsWellFormedUriString(token.Text, UriKind.Absolute))
+                            if ((_ref.StartsWith("http://") || _ref.StartsWith("https://")) &&
+                                Uri.IsWellFormedUriString(_ref, UriKind.Absolute))
                             {
-                                html += $"<a href=\"{token.Text}\">{token.Text}</a>";
+                                html += "<a";
+                                if (!(_ref + '/').StartsWith("https://www.bananaspace.net/"))
+                                    html += " class=\"external-link\"";
+                                html += $" href=\"{_ref}\">{text ?? _ref}</a>";
                                 break;
                             }
 
                             html += $"<:REF:{HttpUtility.HtmlEncode(token.Text)}>";
                             break;
                         case TokenType.CodeSnippet:
-                            bool isDisplayCode = token.Text.StartsWith("D/");
-                            html += isDisplayCode ? "<pre class=\"paragraph code-snippet\">" : "<code class=\"code-snippet\">";
+                            bool isDisplayCode = token.Text.StartsWith("D/"), noColoring = token.Text.StartsWith("i/");
+                            html += isDisplayCode ? "<pre class=\"paragraph code-snippet\">" :
+                                noColoring ? "<code>" : "<code class=\"code-snippet\">";
                             html += HttpUtility.HtmlEncode(token.Text.Substring(2));
                             html += isDisplayCode ? "</pre>" : "</code>";
                             break;
@@ -255,6 +277,8 @@ namespace Banana.Text
                 last = token;
             }
 
+            try { html = html.Normalize(); }
+            catch { }
             return html;
         }
 

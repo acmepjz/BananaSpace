@@ -46,16 +46,125 @@ $(function () {
     });
 
     // CodeMirror
-    var $textarea = $('.textarea-code'), codemirror;
+    var $textarea = $('.textarea-code'), cm;
     if ($textarea.length > 0 && CodeMirror) {
-        codemirror = CodeMirror.fromTextArea($textarea[0], {
+        cm = CodeMirror.fromTextArea($textarea[0], {
             lineNumbers: true,
             lineWrapping: true,
-            viewportMargin: Infinity,
             mode: 'tex',
             readOnly: $textarea.attr('readonly') ? true : false
         });
-        codemirror.init(codemirror)
+        cm.init(cm);
+
+        cm.on('change', function () {
+            var hist = cm.historySize();
+            if (hist.undo > 0) {
+                $('#_btn-undo').removeClass('no-display');
+                $('#_btn-undo-disabled').addClass('no-display');
+            } else {
+                $('#_btn-undo').addClass('no-display');
+                $('#_btn-undo-disabled').removeClass('no-display');
+            }
+            if (hist.redo > 0) {
+                $('#_btn-redo').removeClass('no-display');
+                $('#_btn-redo-disabled').addClass('no-display');
+            } else {
+                $('#_btn-redo').addClass('no-display');
+                $('#_btn-redo-disabled').removeClass('no-display');
+            }
+        })
+
+        $('#_btn-undo').click(function () {
+            cm.undo();
+            cm.focus();
+        });
+
+        $('#_btn-redo').click(function () {
+            cm.redo();
+            cm.focus();
+        });
+
+        // -1: inversed; 1: normal; 0: no selection
+        function selDirection(sel) {
+            return sel.anchor.line > sel.head.line || (sel.anchor.line == sel.head.line && sel.anchor.ch > sel.head.ch) ? -1
+                : (sel.anchor.line == sel.head.line && sel.anchor.ch == sel.head.ch) ? 0 : 1;
+        }
+
+        $('#_btn-comment').click(function () {
+            var selections = cm.listSelections();
+            if (selections.length == 1) {
+                var sel = selections[0];
+                if (selDirection(sel) == -1) cm.lineComment(sel.head, sel.anchor);
+                else cm.lineComment(sel.anchor, sel.head);
+            }
+            cm.focus();
+        });
+
+        $('#_btn-uncomment').click(function () {
+            var selections = cm.listSelections();
+            if (selections.length == 1) {
+                var sel = selections[0];
+                if (selDirection(sel) == -1) cm.uncomment(sel.head, sel.anchor);
+                else cm.uncomment(sel.anchor, sel.head);
+            }
+            cm.focus();
+        });
+
+        $('#_btn-add-braces').click(function () {
+            var selections = cm.listSelections();
+            var i = selections.length;
+            while (i--) {
+                var sel = selections[i];
+                if (selDirection(sel) == -1) {
+                    cm.replaceRange('}', sel.anchor, null, '+move');
+                    cm.replaceRange('{', sel.head, null, '+move');
+                } else {
+                    cm.replaceRange('}', sel.head, null, '+move');
+                    cm.replaceRange('{', sel.anchor, null, '+move');
+                }
+            }
+            // cm expands selection to contain the '}' by default; we don't want it.
+            selections = cm.listSelections();
+            var newSelections = [];
+            for (i = 0; i < selections.length; i++) {
+                var sel = selections[i], dir = selDirection(sel);
+                if (dir == -1) newSelections.push({ anchor: { line: sel.anchor.line, ch: sel.anchor.ch - 1 }, head: sel.head });
+                else if (dir == 0) newSelections.push({ anchor: { line: sel.anchor.line, ch: sel.anchor.ch - 1 }, head: { line: sel.head.line, ch: sel.head.ch - 1 } });
+                else if (dir == 1) newSelections.push({ anchor: sel.anchor, head: { line: sel.head.line, ch: sel.head.ch - 1 } });
+            }
+            cm.setSelections(newSelections);
+            cm.focus();
+        });
+
+        $('#_btn-add-env').click(function () {
+            var selections = cm.listSelections();
+            var i = selections.length;
+            while (i--) {
+                var sel = selections[i];
+                if (selDirection(sel)) {
+                    cm.replaceRange('\r\n\\end{}', sel.anchor, null, '+move');
+                    cm.replaceRange('\\begin{}\r\n', sel.head, null, '+move');
+                } else {
+                    cm.replaceRange('\r\n\\end{}', sel.head, null, '+move');
+                    cm.replaceRange('\\begin{}\r\n', sel.anchor, null, '+move');
+                }
+            }
+            // create 2 cursors at '\begin{}' and '\end{}'
+            selections = cm.listSelections();
+            var newSelections = [];
+            for (i = 0; i < selections.length; i++) {
+                var sel = selections[i], dir = selDirection(sel), beginLine, endLine;
+                if (dir == -1) { beginLine = sel.head.line - 1; endLine = sel.anchor.line; }
+                else if (dir == 0) { beginLine = sel.anchor.line - 2; endLine = sel.anchor.line; }
+                else if (dir == 1) { beginLine = sel.anchor.line - 1; endLine = sel.head.line; }
+                var pos = { line: beginLine, ch: cm.getLine(beginLine).length - 1 };
+                newSelections.push({ anchor: pos, head: pos });
+                pos = { line: endLine, ch: 5 };
+                newSelections.push({ anchor: pos, head: pos });
+            }
+            cm.setSelections(newSelections);
+            cm.focus();
+        });
     }
 
     // syntax highlighting
@@ -119,6 +228,7 @@ $(function () {
                 },
                 success: function (data) {
                     $('.previewer-container .box').html(data);
+                    $('a[href^="#"]').click(internalLinkClick);
                     if (MathJax)
                         MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
                     if (CodeMirror.colorize)
@@ -137,8 +247,8 @@ $(function () {
         })
 
         function prepareForSaving() {
-            if (codemirror !== undefined)
-                $textarea.text(codemirror.getValue());
+            if (cm !== undefined)
+                $textarea.text(cm.getValue());
         }
     }
 
@@ -336,11 +446,13 @@ $('.leave-no-confirm').click(function () {
 });
 
 var $root = $('html, body');
-$('a[href^="#"]').click(function () {
+function internalLinkClick() {
     var href = $.attr(this, 'href');
     if (href != '#')
         $root.animate({
             scrollTop: $(href).offset().top
         }, 500);
     return false;
-});
+}
+
+$('a[href^="#"]').click(internalLinkClick);

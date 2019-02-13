@@ -72,7 +72,8 @@ namespace Banana.Text
             "split",
             "subarray",
             "Vmatrix",
-            "vmatrix"
+            "vmatrix",
+            "xy"
         };
 
         private static CommandDictionary _commandDefinitions = null;

@@ -21,11 +21,13 @@ namespace Banana.Data
         private DbSet<UserCoursePagesItem> CoursePages { get; set; }
         private DbSet<UserLabel> Labels { get; set; }
         private DbSet<UserRole> UserRole { get; set; }
+        private DbSet<UserAccessItem> UserAccess { get; set; }
         private DbSet<UserFavoritesItem> UserFavorites { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<UserCoursePagesItem>().HasKey("CourseId", "PageId");
+            modelBuilder.Entity<UserAccessItem>().HasKey("UserName", "CourseId");
             modelBuilder.Entity<UserFavoritesItem>().HasKey("UserName", "CourseId");
             modelBuilder.Entity<UserRole>().HasKey("UserName");
         }
@@ -224,6 +226,10 @@ namespace Banana.Data
                         where item.CourseId == courseId
                         select item);
 
+            RemoveRange(from item in UserAccess
+                        where item.CourseId == courseId
+                        select item);
+
             RemoveRange(from label in Labels
                         where label.CourseId == courseId
                         select label);
@@ -276,6 +282,80 @@ namespace Banana.Data
                            select item;
             foreach (var item in toRemove)
                 Remove(item);
+        }
+
+        public void AddAccess(string userName, int courseId)
+        {
+            var result = from item in UserAccess
+                         where item.UserName == userName && item.CourseId == courseId
+                         select item;
+            foreach (var item in result)
+                if (item.HasAccess)
+                    return;
+            if (result.Any())
+            {
+                var item = result.Single();
+                Update(item);
+                item.HasAccess = true;
+                item.AttemptCount = 0;
+            }
+            else
+            {
+                UserAccess.Add(new UserAccessItem
+                {
+                    UserName = userName,
+                    CourseId = courseId,
+                    HasAccess = true,
+                    AttemptCount = 0
+                });
+            }
+        }
+
+        public void WrongPasswordAtAccess(string userName, int courseId)
+        {
+            var result = from item in UserAccess
+                         where item.UserName == userName && item.CourseId == courseId
+                         select item;
+            if (result.Any())
+            {
+                var item = result.Single();
+                Update(item);
+                if (item.AttemptCount < 200)
+                    item.AttemptCount++;
+            }
+            else
+            {
+                UserAccess.Add(new UserAccessItem
+                {
+                    UserName = userName,
+                    CourseId = courseId,
+                    HasAccess = false,
+                    AttemptCount = 1
+                });
+            }
+        }
+
+        public bool IsBlocked(string userName, int courseId)
+        {
+            return (from item in UserAccess
+                    where item.UserName == userName && item.CourseId == courseId && !item.HasAccess && item.AttemptCount >= 200
+                    select item).Any();
+        }
+
+        public bool HasAccess(string userName, UserCourse course)
+        {
+            if (course.Creator == userName || UserIsAdmin(userName))
+                return true;
+            return (from item in UserAccess
+                    where item.UserName == userName && item.CourseId == course.Id && item.HasAccess
+                    select item).Any();
+        }
+
+        public void ResetAccess(int courseId)
+        {
+            UserAccess.RemoveRange(from item in UserAccess
+                                   where item.CourseId == courseId
+                                   select item);
         }
 
         public bool AddFile(UserPage page, IFormFile file)

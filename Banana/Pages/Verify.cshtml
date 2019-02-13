@@ -1,0 +1,25 @@
+﻿@page
+@model Banana.Pages.VerifyModel
+@{
+    ViewData["Title"] = "输入密码";
+}
+
+<div class="box not-wide center-block large-margin-top large-padding">
+    <h1 class="box-h1 text-center">@ViewData["Title"]</h1>
+
+    <form method="post">
+        <div class="form-group">
+            @if (Model.IsSecondAttempt)
+            {
+                <p class="text-danger">密码不正确。</p>
+            }
+            <p>文档的创建者设置了密码，输入密码才能查看文档。</p>
+            <label asp-for="Password"></label>
+            <input asp-for="Password" class="form-control textbox-code" spellcheck="false" autocomplete="off" />
+        </div>
+        <div class="form-group">
+            <input type="submit" value="确定" class="btn button-yellow" />
+        </div>
+    </form>
+</div>
+

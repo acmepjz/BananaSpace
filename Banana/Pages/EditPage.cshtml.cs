@@ -28,15 +28,15 @@ namespace Banana.Pages
 
         public class InputModel
         {
-            [MaxLength(100, ErrorMessage = "标题长度不能超过 100 字符。")]
+            [MaxLength(100)]
             [Display(Name = "页面标题")]
             public string Title { get; set; }
 
-            [MaxLength(100000, ErrorMessage = "内容长度不能超过 100 000 字符。")]
             [Display(Name = "页面内容")]
             [DataType(DataType.MultilineText)]
             public string Content { get; set; }
 
+            [MaxLength(50)]
             [Display(Name = "章节编号")]
             public string SectionNumber { get; set; }
         }
@@ -50,40 +50,49 @@ namespace Banana.Pages
         public string PageTitle { get; set; }
         public string PageContent { get; set; }
 
-        public void OnGet(string id = null)
+        public IActionResult OnGet(int id)
         {
-            if (int.TryParse(id, out int pageId))
+            UserPage = _pageManager.GetPage(id);
+            if (UserPage == null) return NotFound();
+
+            if (User?.Identity.IsAuthenticated != true)
+                return Actions.RedirectToLoginPage();
+
+            UserCourse = _pageManager.GetCourse(UserPage.CourseId);
+            if (!_pageManager.UserCanEdit(User.Identity.Name, UserPage))
+                return Forbid();
+
+            ViewData["Title"] = "编辑: " + UserPage.Title;
+            if (UserPage.DraftId != null)
+                DraftPage = _pageManager.GetPage(UserPage.DraftId ?? 0);
+            AllPagesInCourse = _pageManager.GetAllPages(UserPage.CourseId);
+
+            var page = DraftPage ?? UserPage;
+            PageTitle = page.Title;
+            PageContent = page.GetFinalHtml(_pageManager, UserPage);
+            Input = new InputModel
             {
-                UserPage = _pageManager.GetPage(pageId);
-                if (UserPage == null) return;
-
-                ViewData["Title"] = "编辑: " + UserPage.Title;
-                if (UserPage.DraftId != null)
-                    DraftPage = _pageManager.GetPage(UserPage.DraftId ?? 0);
-                UserCourse = _pageManager.GetCourse(UserPage.CourseId);
-                AllPagesInCourse = _pageManager.GetAllPages(UserPage.CourseId);
-
-                var page = DraftPage ?? UserPage;
-                PageTitle = page.Title;
-                PageContent = page.GetFinalHtml(_pageManager, UserPage);
-                Input = new InputModel
-                {
-                    Title = page.Title,
-                    Content = page.Content,
-                    SectionNumber = page.SectionNumber
-                };
-            }
+                Title = page.Title,
+                Content = page.Content,
+                SectionNumber = page.SectionNumber
+            };
+            return Page();
         }
 
         private void UpdateContent(UserPage page, out ExpansionData data)
         {
+            page.SectionNumber = string.IsNullOrWhiteSpace(Input.SectionNumber) ? null : Input.SectionNumber.Trim();
+
             string title = Input.Title;
             if (string.IsNullOrWhiteSpace(title)) title = "无标题";
             page.Title = title;
             page.HtmlTitle = Parser.ToHtml(title, page, ParserOptions.SingleLine, out data);
 
             var labels = _pageManager.GetAllLabels(page.CourseId);
-            page.Content = Input.Content;
+            if (Input.Content == null)
+                Input.Content = "";
+            if (Input.Content.Length <= Expression.MaxLength)
+                page.Content = Input.Content;
             page.HtmlContent = Parser.ToHtml(Input.Content, page, ParserOptions.Default, out data);
         }
 
@@ -103,6 +112,11 @@ namespace Banana.Pages
         //  - 'publish': redirects to ViewPage.cshtml
         public IActionResult OnPost(int id)
         {
+            UserPage = _pageManager.GetPage(id);
+            if (UserPage == null) return NotFound();
+            if (User?.Identity.IsAuthenticated != true) return Forbid();
+            UserCourse = _pageManager.GetCourse(UserPage.CourseId);
+            if (!_pageManager.UserCanEdit(User.Identity.Name, UserPage)) return Forbid();
             var form = Request.Form;
             if (form == null) return BadRequest();
             bool publish = false;
@@ -110,8 +124,6 @@ namespace Banana.Pages
             if (action == "publish") publish = true;
             else if (action == "save") { }
             else return BadRequest();
-            UserPage = _pageManager.GetPage(id);
-            if (UserPage == null) return BadRequest();
             if (!ModelState.IsValid) return BadRequest();
 
             if (UserPage.DraftId != null)

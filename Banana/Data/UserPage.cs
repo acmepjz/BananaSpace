@@ -78,13 +78,21 @@ namespace Banana.Data
                     s = s.Substring(6);
                     int i = s.IndexOf('>');
                     if (i == -1) throw new Exception();
-                    var name = s.Substring(0, i);
+                    string _ref = s.Substring(0, i), text = null;
                     s = s.Substring(i + 1);
+                    if (_ref.Contains(":TEXT:"))
+                    {
+                        int ii = _ref.IndexOf(":TEXT:");
+                        text = _ref.Substring(ii + 6);
+                        _ref = _ref.Substring(0, ii);
+                    }
 
-                    var l = (from label in labels where label.Key == name select label).FirstOrDefault();
+                    var l = (from label in labels
+                             where label.Key == _ref
+                             select label).FirstOrDefault();
                     if (l != null)
                     {
-                        html += $"<a href=\"/page/{l.PageId}#{l.Key}\">{l.Content}</a>";
+                        html += $"<a href=\"/page/{l.PageId}#{l.Key}\">{text ?? l.Content}</a>";
                         break;
                     }
 

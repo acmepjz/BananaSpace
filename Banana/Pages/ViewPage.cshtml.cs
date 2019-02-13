@@ -33,9 +33,17 @@ namespace Banana.Pages
             if (UserPage == null)
                 return NotFound();
 
+            UserCourse = _pageManager.GetCourse(UserPage.CourseId);
+            if (UserCourse.Password != null)
+            {
+                if (User?.Identity.IsAuthenticated != true)
+                    return Actions.RedirectToLoginPage();
+                if (!_pageManager.HasAccess(User.Identity.Name, UserCourse))
+                    return LocalRedirect($"~/page/{id}/verify");
+            }
+
             PageTitle = UserPage.HtmlTitle;
             PageContent = UserPage.GetFinalHtml(_pageManager, UserPage);
-            UserCourse = _pageManager.GetCourse(UserPage.CourseId);
             _PageListPartialModel = new _PageListPartialModel(_pageManager, UserCourse, UserPage);
 
             if (User?.Identity.IsAuthenticated == true)

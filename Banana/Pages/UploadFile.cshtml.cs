@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Banana.Data;
@@ -13,6 +14,11 @@ namespace Banana.Pages
     {
         private UserPageManager _pageManager;
 
+        private readonly string[] AllowedExtensions =
+        {
+            ".jpeg", ".jpg", ".png", ".svg"
+        };
+
         public UploadFileModel(UserPageManager pageManager)
         {
             _pageManager = pageManager;
@@ -21,7 +27,7 @@ namespace Banana.Pages
         public IActionResult OnPost()
         {
             if (!User.Identity.IsAuthenticated)
-                return BadRequest();
+                return Forbid();
             var form = Request.Form;
             if (form == null)
                 return BadRequest();
@@ -32,7 +38,7 @@ namespace Banana.Pages
             if (page == null)
                 return BadRequest();
             if (!_pageManager.UserCanEdit(User.Identity.Name, page))
-                return BadRequest();
+                return Forbid();
 
             var action = form["Action"];
             switch (action)
@@ -42,7 +48,10 @@ namespace Banana.Pages
                         return BadRequest();
 
                     var file = form.Files.Single();
-                    // TODO: check file name
+                    if (!AllowedExtensions.Contains(Path.GetExtension(file.FileName).ToLower()))
+                        return BadRequest();
+                    if (file.Length >= 2 << 20) // 2 MB
+                        return BadRequest();
 
                     if (_pageManager.AddFile(page, file))
                         return Page();

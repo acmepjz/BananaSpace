@@ -12,15 +12,28 @@ namespace Banana.Text
     {
         public const string SpecialChars = "0123456789`~!#$%^&*()-_=+[]{}\\|;:'\",.<>/?";
 
-        const int MaxBuffer = 1000000;
+        public const int MaxBuffer = 1000000, MaxLength = 100000;
         const string DefaultColor = "000000",
             DefaultBlockBackground = "e8f6ff",
             DefaultBlockBorder = "44bbee";
         const double DefaultFontSize = 18;
         const string VariableNameRegex = @"^[\w\-]+$", ColorRegex = "^[0-9a-fA-F]{6}$";
 
+        private static bool IsValidCodePoint(int point) // returns false for 0xd800..0xdfff, 0xfdd0..0xfdef, 0x{.}fffe, 0x{.}ffff where {.} = 0..f, 10
+        {
+            return point >= 0 &&
+                ((point < 0xfdd0 && !(point >= 0xd800 && point < 0xe000)) ||
+                    (point >= 0xfdf0 &&
+                        ((point & 0xffff) != 0xffff) &&
+                        ((point & 0xfffe) != 0xfffe) &&
+                        point <= 0x10ffff));
+        }
+
         public static List<Token> Parse(string s, string fileName)
         {
+            if (s.Length > MaxLength)
+                throw TextException.TextTooLong(MaxLength);
+
             List<Token> tokens = new List<Token>();
             s = s.Replace("\r\n", "\n").Replace("\r", "\n");
             s += " ";
@@ -121,11 +134,16 @@ namespace Banana.Text
                     default:
                         if (char.IsSurrogatePair(s, i))
                         {
-                            tokens.Add(new Token(s.Substring(i, 2), TokenType.Text, pos(_i), pos(i + 2)));
+                            int point = 0x10000 + (s[i] - 0xd800) * 0x400 + s[i + 1] - 0xdc00;
+                            if (IsValidCodePoint(point))
+                                tokens.Add(new Token(s.Substring(i, 2), TokenType.Text, pos(_i), pos(i + 2)));
                             i++;
                         }
                         else
-                            tokens.Add(new Token(s[i].ToString(), TokenType.Text, pos(_i), pos(i + 1)));
+                        {
+                            if (IsValidCodePoint(s[i]))
+                                tokens.Add(new Token(s[i].ToString(), TokenType.Text, pos(_i), pos(i + 1)));
+                        }
                         break;
                 }
             }
@@ -587,7 +605,7 @@ namespace Banana.Text
                                     out int theChar))
                                 {
                                     Token tokChar;
-                                    if (theChar >= 0 && theChar <= 0xffff)
+                                    if (theChar >= 0 && theChar <= 0xffff && !(theChar >= 0xd800 && theChar < 0xe000))
                                         tokChar = new Token(((char)theChar).ToString(), TokenType.Text);
                                     else if (theChar >= 0x10000 && theChar <= 0x10ffff)
                                         tokChar = new Token("" + ((char)(0xd800 + (theChar - 0x10000) / 0x400)) + ((char)(0xdc00 + theChar % 0x400)), TokenType.Text);
@@ -811,7 +829,12 @@ namespace Banana.Text
                             case "@@ref":
                                 if (isMathMode)
                                     throw TextException.InvalidInMathMode(t);
-                                var argument = ReadTextArgument(tokens, ref i, data, t, true).Trim();
+                                string refText = data.GetString("ref-text", null, true)?.Trim();
+                                if (string.IsNullOrEmpty(refText)) refText = null;
+                                var argument = ReadTextArgument(tokens, ref i, data, t, true).Trim()
+                                    .Replace(":TEXT:", ":text:");
+                                if (refText != null)
+                                    argument += ":TEXT:" + refText;
                                 result.Add(new Token(argument, TokenType.Reference));
                                 continue;
 
@@ -843,7 +866,9 @@ namespace Banana.Text
                                 if (i + 1 == tokens.Count)
                                     throw TextException.TokenExpected(t);
 
-                                char mode = data.GetBool("display-code", false, true) ? 'D' : 'I'; // display vs inline
+                                bool displayCode = data.GetBool("display-code", false, true),
+                                    noColoring = data.GetBool("code-no-coloring", false, true);
+                                char mode = displayCode ? 'D' : noColoring ? 'i' : 'I'; // display vs inline
                                 TextPosition start, end;
                                 if (tokens[i + 1].Type == TokenType.BeginGroup)
                                 {
@@ -1231,9 +1256,10 @@ namespace Banana.Text
                 if (tokens[ii].Type == TokenType.BeginGroup) nest++;
                 if (tokens[ii].Type == TokenType.EndGroup) nest--;
                 if (nest == 0 && tokens[ii].Type == TokenType.MathDelim) break;
+                if (nest < 0) throw TextException.UnmatchedBracket(tokens[ii], "}");
             }
 
-            if (nest > 0 || tokens[ii].Text != expected)
+            if (nest > 0 || ii == tokens.Count || tokens[ii].Text != expected)
                 throw TextException.UnmatchedBracket(start, start.Text);
             int _i = i;
             i = ii;
@@ -1363,6 +1389,7 @@ namespace Banana.Text
             double parSepAbove = data.GetDouble("par-sep-above", 0, false),
                 parSepBelow = data.GetDouble("par-sep-below", 18, false);
             int textAlign = data.GetInt("text-align", 0, false); // 0 = justify, 1 = l, 2 = c, 3 = r.
+            bool noPageBreak = data.GetBool("no-page-break", false, true);
 
             if (parSepAbove != 0)
             {
@@ -1382,6 +1409,8 @@ namespace Banana.Text
                     (textAlign == 1 ? "left" :
                     textAlign == 2 ? "center" : "right"));
             }
+            if (noPageBreak)
+                styles.Add("page-break-after: avoid");
 
             if (styles.Count == 0)
                 return new Token($"<{name} class=\"{_class}\">", TokenType.HtmlTag);

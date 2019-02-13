@@ -53,6 +53,11 @@
 
 \def\setparsep#1{\@@set{par-sep-below}{#1}}
 \def\setparsepabove#1{\@@set{par-sep-above}{#1}}
+\def\nopagebreakafter{\@sett{no-page-break}}
+
+\def\section#1{{\setparsepabove{36}\nopagebreakafter\par\size{28}\color{88c010}\lt#1}\par}
+\def\subsection#1{{\setparsepabove{30}\nopagebreakafter\par\size{24}\color{11bbdd}#1}\par}
+\def\subsubsection#1{{\setparsepabove{24}\nopagebreakafter\par\size{22}\color{1177dd}#1}\par}
 
 
 %%%%%%%%%% SPECIAL CHARACTERS %%%%%%%%%%
@@ -102,8 +107,8 @@
 \tdef\${\@u0024}
 \tdef\%{\@u0025}
 \tdef\&{\@u0026}
-\tdef\^{\@u005e}
 \tdef\_{\@u005f}
+\tdef\backslash{\@u005c}
 \tdef\ {\@u0020}
 \tdef\quad{\@u3000}
 \tdef\qquad{\quad\quad}
@@ -180,7 +185,7 @@
     \@adefenv{@theorem}{#1#2[#3~]#4}{\par{\@rm{\@bf#1 #2} (#3){\@bf.}}\color{} #4\par}
   \@colorfulstyle
 }
-\defa\style\@@bg colorful\@@eg{
+\defa\style\@@bg loose\@@eg{
   \@defenv{@theorem}{#1#2#3}{\par{\@rm\@addquad{#2}{\@bf#1}}\par\color{}#3\par}
     \@adefenv{@theorem}{#1#2[#3~]#4}{\par{\@rm\@addquad{#2}{\@bf#1}\quad#3}\par\color{}#4\par}
   \@colorfulstyle
@@ -270,16 +275,19 @@
 \def\reqno#1{\def\@afterdisplay{#1}}
 \def\@beforedisplay{}
 \def\@afterdisplay{}
-\def\theequation{\thetheorem.\arabic{equation}}
+\def\theequation{\thmprefix\arabic{equation}}
 \def\@eqno{\refstepcounter{equation}\eqno{(\theequation)}}
 \@defenv{equation}{#1}{\[\@eqno#1\]}
 \@defenv{equation*}{#1}{\[#1\]}
 
 
 %%%%%%%%%%     CROSS-REFS     %%%%%%%%%%
+\def\bookmark#1{\@@bmk\def\@currentlabel{#1}}
 \let\ref\@@ref
+  \adef\ref[#1~]{\@@set{ref-text}{#1}\@@ref}
 \let\label\@@label
 \def\eqref#1{(\@@ref{#1})}
+\def\@currentlabel{\@secnum}
 
 
 %%%%%%%%%%     TEXT ALIGN     %%%%%%%%%%
@@ -295,4 +303,5 @@
 
 %%%%%%%%%%    CODE SNIPPETS   %%%%%%%%%%
 \def\code{\@@code}
+  \adef\code*{\@sett{code-no-coloring}\@@code}
 \def\codeblock{\@sett{display-code}\@@code}

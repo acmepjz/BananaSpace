@@ -25,6 +25,36 @@
                 </div>
 
                 <div class="editor-tab-active">
+                    <div class="editor-toolbar">
+                        <a class="editor-toolbar-button no-display" id="_btn-undo" href="#" title="撤销 (Ctrl+Z)">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" id="_svg-undo"><path class="icon-canvas-transparent" d="M16 0v16H0V0h16z" /><path class="icon-vs-out" d="M14.888 5.972a5.852 5.852 0 0 1-1.727 4.204L7.336 16h-.242l-2.707-2.707 5.945-5.945c.364-.364.565-.849.565-1.363 0-.515-.2-1-.565-1.364A2.036 2.036 0 0 0 9 4.011V8H1V0h4v1.474A5.885 5.885 0 0 1 8.913.002c1.585 0 3.074.616 4.192 1.734a6.01 6.01 0 0 1 1.783 4.236z" /><g><path class="icon-vs-action-blue" d="M12.453 9.469l-5.238 5.238-1.414-1.414 5.238-5.238a2.91 2.91 0 0 0 .857-2.07c0-.782-.305-1.518-.857-2.071-1.198-1.198-3.056-1.199-4.197-.057L5.7 5H8v2H2V1h2v2.872l1.428-1.428a4.933 4.933 0 0 1 6.969 0c1.978 1.977 1.978 5.103.056 7.025z" /></g></svg>
+                        </a>
+                        <div class="editor-toolbar-button-disabled" id="_btn-undo-disabled" title="撤销 (Ctrl+Z)">
+                            <svg viewBox="0 0 16 16"><use xlink:href="#_svg-undo"></use></svg>
+                        </div>
+                        <a class="editor-toolbar-button no-display" id="_btn-redo" href="#" title="恢复 (Ctrl+Y)">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" id="_svg-redo"><path class="icon-canvas-transparent" d="M16 0v16H0V0h16z" /><path class="icon-vs-out" d="M2.895 1.736A5.883 5.883 0 0 1 7.087.002c1.457 0 2.832.52 3.913 1.472V0h4v8H7V4.011a2.041 2.041 0 0 0-1.332.61 1.915 1.915 0 0 0-.565 1.363c0 .515.2.999.565 1.363l5.945 5.945L8.906 16h-.242L2.84 10.176a5.857 5.857 0 0 1-1.728-4.204 6.01 6.01 0 0 1 1.783-4.236z" /><g><path class="icon-vs-action-blue" d="M3.602 2.443a4.933 4.933 0 0 1 6.969 0L12 3.872V1h2v6H8V5h2.3L9.158 3.857c-1.141-1.142-2.999-1.141-4.197.057a2.909 2.909 0 0 0-.858 2.07c0 .782.305 1.517.857 2.07l5.238 5.238-1.414 1.414-5.237-5.237c-1.922-1.922-1.922-5.048.055-7.026z" /></g></svg>
+                        </a>
+                        <div class="editor-toolbar-button-disabled" id="_btn-redo-disabled" title="恢复 (Ctrl+Y)">
+                            <svg viewBox="0 0 16 16"><use xlink:href="#_svg-redo"></use></svg>
+                        </div>
+                        <div class="editor-toolbar-separator"></div>
+                        <a class="editor-toolbar-button" id="_btn-comment" href="#" title="注释">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path class="icon-canvas-transparent" d="M16 16h-16v-16h16v16z" /><path class="icon-vs-out" d="M14 2v11h-10v-3h3v-1h-2v-4h-3v-3h12z" id="outline" /><path class="icon-vs-bg" d="M5 11h8v1h-8v-1zm3-1h5v-1h-5v1zm-2-6h7v-1h-7v1zm-3 0h2v-1h-2v1z" /><path class="icon-vs-action-green" d="M6 7h7v1h-7v-1zm0-1h7v-1h-7v1z" /></svg>
+                        </a>
+                        <a class="editor-toolbar-button" id="_btn-uncomment" href="#" title="取消注释">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g><path class="icon-canvas-transparent" d="M0 0h16v16H0z" /><path class="icon-vs-out" d="M7.708 3a3.494 3.494 0 0 0-3.147-2c-.574 0-1.003.088-1.502.349V0h-.34L.059 2.515V6H3.609l-1.95 1.709 2.099 2.099L5.858 8h.2v2h1v1h-3v3h10V3h-6.35z" /></g><g><path class="icon-vs-bg" d="M5.059 12h8v1h-8zM8.059 10h5v1h-5zM7.059 8h6v1h-6zM8.059 6h5v1H7.811zM8.059 4h5v1h-5z" /></g><path class="icon-vs-action-blue" d="M4.561 2c-.592 0-.924.097-1.616.594l-.886.767V2l-1 .945V5h2.15l.85-1h-1.24l.773-.644c.319-.207.614-.356.969-.356a1.502 1.502 0 0 1 .969 2.645L3.121 7.757l.688.687 2.377-2.046A2.5 2.5 0 0 0 4.561 2z" /></svg>
+                        </a>
+                        <div class="editor-toolbar-separator"></div>
+                        <a class="editor-toolbar-button" id="_btn-add-braces" href="#" title="插入大括号（先选中一段代码，再点击此按钮）">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path class="icon-canvas-transparent" d="M16 16H0V0h16v16z" /><path class="icon-vs-out" d="M9.26 11.984l.978-.021a.962.962 0 0 0 .09-.006c.011-.063.026-.179.026-.361V9.688c0-.679.185-1.257.53-1.707-.346-.452-.53-1.03-.53-1.705V4.35c0-.167-.021-.259-.034-.302L9.26 4.02V.973l1.011.011c2.167.024 3.409 1.156 3.409 3.105v1.962c0 .351.071.461.072.462l.936.06.053.927v1.936l-.936.061c-.076.016-.125.146-.125.424v2.017c0 .914-.332 3.043-3.408 3.078l-1.012.011v-3.043zm-3.521 3.032c-3.089-.035-3.422-2.164-3.422-3.078V9.921c0-.327-.066-.432-.067-.433l-.937-.06-.063-.929V6.563l.942-.06c.058 0 .125-.114.125-.452V4.09c0-1.949 1.248-3.081 3.422-3.105L6.75.973V4.02l-.975.023a.572.572 0 0 0-.093.01c.006.021-.019.115-.019.297v1.928c0 .675-.186 1.253-.534 1.705.348.45.534 1.028.534 1.707v1.907c0 .175.014.291.027.363.023.002 1.06.025 1.06.025v3.043l-1.011-.012z" /><g><path class="icon-vs-bg" d="M5.75 14.016c-1.623-.019-2.434-.711-2.434-2.078V9.921c0-.902-.355-1.376-1.066-1.422v-.998c.711-.045 1.066-.529 1.066-1.449V4.09c0-1.385.811-2.087 2.434-2.105v1.06c-.725.017-1.087.453-1.087 1.305v1.928c0 .92-.454 1.488-1.36 1.702V8c.907.201 1.36.763 1.36 1.688v1.907c0 .488.081.835.243 1.042.162.208.443.316.844.325v1.054zm7.99-5.517c-.706.045-1.06.52-1.06 1.422v2.017c0 1.367-.807 2.06-2.42 2.078v-1.053c.396-.009.678-.118.844-.328.167-.21.25-.556.25-1.039V9.688c0-.925.449-1.488 1.347-1.688v-.021c-.898-.214-1.347-.782-1.347-1.702V4.35c0-.852-.364-1.288-1.094-1.306v-1.06c1.613.018 2.42.72 2.42 2.105v1.962c0 .92.354 1.404 1.06 1.449v.999z" /></g></svg>
+                        </a>
+                        <a class="editor-toolbar-button" id="_btn-add-env" href="#" title="插入环境（先选中一段代码，再点击此按钮）">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path class="icon-canvas-transparent" d="M16 16h-16v-16h16v16z" /><path class="icon-vs-out" d="M0 1v4h3v5h-3v4h12v-3h4v-7h-4v-3h-12z" /><path class="icon-gray" d="M4 6h11v-1h-11v1zm0 1h11v1h-11v-1zm0 2h11v1h-11v-1z" /><path class="icon-vs-bg" d="M1 4h10v-2h-10v2zm0 7h10v2h-10v-2z" /></svg>
+                        </a>
+                        <div class="flex-can-grow"></div>
+                        <a class="link-no-underline" href="/page/10000000">格式参考</a>
+                    </div>
                     <textarea asp-for="Input.Content" class="form-control textbox-code textarea-code" placeholder="@Model.ContentUIHint" spellcheck="false"></textarea>
                 </div>
 
@@ -32,7 +62,7 @@
                     <div class="editor-form-groups">
                         <div class="form-group">
                             <label asp-for="Input.Title"></label>
-                            <input asp-for="Input.Title" class="form-control textbox-code" autocomplete="off" />
+                            <input asp-for="Input.Title" class="form-control textbox-code" autocomplete="off" maxlength="100" />
                         </div>
 
                         @if (Model.UserPage.Id == Model.UserCourse.MainPageId)
@@ -43,7 +73,7 @@
                         {
                             <div class="form-group">
                                 <label asp-for="Input.SectionNumber"></label>
-                                <input asp-for="Input.SectionNumber" class="form-control textbox-code" autocomplete="off" />
+                                <input asp-for="Input.SectionNumber" class="form-control textbox-code" autocomplete="off" maxlength="50" />
                             </div>
                         }
 
@@ -87,8 +117,9 @@
 
 <div class="previewer-container">
     <div class="box med-padding">
+        @{ var _page = Model.DraftPage ?? Model.UserPage; }
         <h1 class="box-h1">
-            @(Model.UserPage.SectionNumber == null ? "" : Model.UserPage.SectionNumber + ". ")@Html.Raw(Model.UserPage.HtmlTitle)
+            @(_page.SectionNumber == null ? "" : _page.SectionNumber + ". ")@Html.Raw(_page.HtmlTitle)
         </h1>
 
         <div class="user-page-content">
@@ -111,6 +142,7 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="~/lib/codemirror/lib/codemirror.js"></script>
     <script src="~/lib/codemirror/mode/tex.js" asp-append-version="true"></script>
+    <script src="~/lib/codemirror/addon/comment/comment.js"></script>
     <script src="~/lib/codemirror/addon/display/placeholder.js"></script>
     <script src="~/lib/codemirror/addon/hint/show-hint.js"></script>
     <script src="~/lib/codemirror/addon/runmode/runmode.js"></script>

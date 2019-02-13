@@ -30,4 +30,12 @@ namespace Banana.Data
         public string UserName { get; set; }
         public int CourseId { get; set; }
     }
+
+    public class UserAccessItem
+    {
+        public string UserName { get; set; }
+        public int CourseId { get; set; }
+        public bool HasAccess { get; set; }
+        public int AttemptCount { get; set; }
+    }
 }

@@ -85,7 +85,7 @@ footer {
     height: 6rem;
     min-height: 6rem;
     padding-top: 1.2rem;
-    box-shadow: 0 0 20px 0 rgba(0,0,0,.15);
+    box-shadow: 0 0 2rem 0 rgba(0,0,0,.15);
 }
 
 .header-row {
@@ -319,6 +319,10 @@ h2 {
     padding: .2em 0;
 }
 
+    .list-item-plain:hover {
+        color: #17a;
+    }
+
 .link-no-underline {
     text-decoration: none;
 }
@@ -432,8 +436,36 @@ h2 {
     word-break: break-word;
 }
 
-.user-page-content p {
-    margin-bottom: 1.8rem;
+    .user-page-content p {
+        margin-bottom: 1.8rem;
+    }
+
+    .user-page-content a {
+        color: #1ac;
+    }
+
+        .user-page-content a:hover {
+            text-decoration: none;
+            color: #179;
+            background-color: #f0fafc;
+            border-bottom: 2px solid #179;
+        }
+
+        .user-page-content a:focus {
+            text-decoration: none;
+            color: #179;
+        }
+
+.external-link:before {
+    background-image: url(/images/external-link.svg);
+    background-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-top: 3px;
+    margin-right: 3px;
+    display: inline-block;
+    content: '';
+    background-repeat: no-repeat;
 }
 
 .sidebar {
@@ -497,7 +529,7 @@ h2 {
     }
 
         .editor-container .box h1 {
-            margin-bottom: 1rem;
+            margin-bottom: 0;
             height: 2em;
             overflow-y: auto;
         }
@@ -600,6 +632,45 @@ h2 {
         display: flex;
         flex-direction: column;
     }
+
+.editor-toolbar {
+    border-bottom: 1px solid #eee;
+    padding: 0 1rem;
+    height: 30px;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    padding-bottom: 6px;
+}
+
+.editor-toolbar-button {
+    height: 24px;
+    width: 24px;
+    margin: 0;
+    padding: 4px;
+}
+
+    .editor-toolbar-button:hover {
+        background-color: #eee;
+    }
+
+.editor-toolbar-button-disabled {
+    height: 24px;
+    width: 24px;
+    margin: 0;
+    padding: 4px;
+    opacity: .3;
+}
+
+.no-display {
+    display: none;
+}
+
+.editor-toolbar-separator {
+    height: 20px;
+    border-left: 1px solid #ccc;
+    margin: 2px 3px 0 3px;
+}
 
 /* CodeMirror */
 
@@ -822,6 +893,11 @@ h2 {
     margin-top: -7.5rem;
 }
 
+.bookmark-top {
+    position: absolute;
+    top: 0;
+}
+
 code {
     font-family: Menlo, 'Microsoft YaHei', monospace;
     font-size: 1.4rem;
@@ -840,6 +916,41 @@ pre.code-snippet {
     white-space: pre;
     word-wrap: normal;
     overflow-x: auto;
+}
+
+/* VS Icons */
+
+.icon-canvas-transparent {
+    opacity: 0;
+    fill: #F6F6F6;
+}
+
+.icon-vs-out {
+    fill: #F6F6F6;
+}
+
+.icon-vs-bg {
+    fill: #424242;
+}
+
+.icon-vs-action-green {
+    fill: #388A34;
+}
+
+.icon-vs-action-blue {
+    fill: #00539C;
+}
+
+.icon-blue {
+    fill: #09c;
+}
+
+.icon-orange {
+    fill: #d74;
+}
+
+.icon-gray {
+    fill: #aaa;
 }
 
 /* Hide/rearrange for smaller screens */
@@ -901,5 +1012,24 @@ pre.code-snippet {
     .MathJax_Display {
         overflow-x: auto; /* Horizontally scroll long equations. */
         overflow-y: hidden;
+    }
+}
+
+@media print {
+    .header-navbar {
+        display: none;
+    }
+
+    footer {
+        display: none;
+    }
+
+    .page-body {
+        float: none;
+        width: 100%;
+    }
+
+    .sidebar {
+        display: none;
     }
 }

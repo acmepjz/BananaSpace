@@ -144,15 +144,15 @@ namespace Banana.Pages
 
                     string sectionNumber = Input.SectionNumber?.Trim();
                     if (sectionNumber != null && sectionNumber.Length > 50)
-                        sectionNumber = sectionNumber.Substring(0, 50);
+                        return BadRequest();
                     if (string.IsNullOrWhiteSpace(sectionNumber))
                         sectionNumber = null;
 
-                    int newId = _pageManager.NewId();
                     string title = string.IsNullOrWhiteSpace(Input.Title) ? "无标题" : Input.Title;
                     if (title.Length > 100)
-                        title = sectionNumber.Substring(0, 100);
+                        return BadRequest();
 
+                    int newId = _pageManager.NewId();
                     var newPage = new UserPage
                     {
                         CourseId = course.Id,
@@ -203,6 +203,7 @@ namespace Banana.Pages
                     {
                         _pageManager.Update(course);
                         course.Password = newPassword;
+                        _pageManager.ResetAccess(course.Id);
                         _pageManager.SaveChanges();
                     }
                     return LocalRedirect($"~/manage/{course.Id}");

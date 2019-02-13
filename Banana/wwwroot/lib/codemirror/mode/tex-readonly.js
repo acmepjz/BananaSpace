@@ -35,8 +35,7 @@
                 state.textType =
                     result[1] == "begin" ? "environment begin" :
                     result[1] == "end" ? "environment end" :
-                    result[1].match(/^(@defenv|newtheorem|newproof)$/) ? "environment" : 
-                    result[1].match(/^(ref|label|eqref)$/) ? "label" : null;
+                    result[1].match(/^(@defenv|newtheorem|newproof)$/) ? "environment" : null;
                 state.readingText = false;
                 return result[1] == "begin" ? "command begin" :
                     result[1] == "end" ? "command end" :

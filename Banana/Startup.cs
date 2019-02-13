@@ -45,6 +45,7 @@ namespace Banana
                 .AddRewrite(@"^page/([0-9]+)/?$", "ViewPage?id=$1", true)
                 .AddRewrite(@"^page/([0-9]+)/edit/?$", "EditPage?id=$1", true)
                 .AddRewrite(@"^page/([0-9]+)/source/?$", "ViewSource?id=$1", true)
+                .AddRewrite(@"^page/([0-9]+)/verify/?$", "Verify?id=$1", true)
                 .AddRewrite(@"^register/?$", "Identity/Account/Register", true)
                 .AddRewrite(@"^user/?$", "UserProfile", true);
             app.UseRewriter(rewriter);
