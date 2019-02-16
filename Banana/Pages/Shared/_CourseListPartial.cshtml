@@ -12,7 +12,7 @@
                 <div class="list-item@(course.Creator == userName ? " list-item-creator" : "")">
                     <div class="list-item-header">
                         @Html.Raw(course.Title)
-                        @if (course.Creator != userName)
+                        @if (course.Creator != null && course.Creator != userName)
                         {
                             <span class="list-item-header-description">
                                 创建者: <span>@course.Creator</span>

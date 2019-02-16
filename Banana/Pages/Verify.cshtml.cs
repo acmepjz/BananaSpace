@@ -25,15 +25,17 @@ namespace Banana.Pages
         [MaxLength(64)]
         public string Password { get; set; }
 
-        public IActionResult OnGet(int id)
+        public IActionResult OnGet(int id = -1)
         {
-            var page = _pageManager.GetPage(id);
+            if (id == -1) return NotFound();
+
+            var page = _pageManager.GetPage(id, false);
             if (page == null)
                 return NotFound();
 
             var course = _pageManager.GetCourse(page.CourseId);
-            if (User?.Identity.IsAuthenticated != true)
-                return Actions.RedirectToLoginPage();
+            if (User?.Identity?.IsAuthenticated != true)
+                return Actions.RedirectToLoginPage($"/page/{id}");
             if (course.Password == null)
                 return LocalRedirect($"~/page/{id}");
             if (_pageManager.IsBlocked(User.Identity.Name, page.CourseId))
@@ -44,12 +46,13 @@ namespace Banana.Pages
             return Page();
         }
 
-        public IActionResult OnPost(int id)
+        public IActionResult OnPost(int id = -1)
         {
-            if (User?.Identity.IsAuthenticated != true)
-                return BadRequest();
+            if (id == -1) return NotFound();
+            if (User?.Identity?.IsAuthenticated != true)
+                return Unauthorized();
 
-            var page = _pageManager.GetPage(id);
+            var page = _pageManager.GetPage(id, false);
             if (page == null)
                 return NotFound();
             if (_pageManager.IsBlocked(User.Identity.Name, page.CourseId))

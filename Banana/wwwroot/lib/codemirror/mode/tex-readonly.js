@@ -70,7 +70,7 @@
             }
             state.textType = null;
 
-            if (stream.match(/^#+./)) {
+            if (stream.match(/^#+([^0-9`~!#$%^&*()\-_=+[\]{}\\|;:'",.<>\/?\s]+|.|$)/)) {
                 return "argument";
             }
             stream.next();

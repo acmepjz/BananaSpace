@@ -43,80 +43,77 @@ namespace Banana.Pages
             _pageManager = pageManager;
         }
 
-        public IActionResult OnGet(string id = null)
+        public IActionResult OnGet(int id = -1)
         {
-            if (User?.Identity.IsAuthenticated == true &&
-                int.TryParse(id, out int courseId))
-            {
-                UserCourse = _pageManager.GetCourse(courseId);
-                if (UserCourse == null ||
-                    !(User.Identity.Name == UserCourse.Creator || _pageManager.UserIsAdmin(User.Identity.Name)))
-                    return NotFound();
+            if (id == -1) return NotFound();
 
-                UserPages = _pageManager.GetAllPages(courseId).ToList();
-                DraftPages = new Dictionary<UserPage, UserPage>();
-                foreach (var page in UserPages)
-                    if (page.DraftId != null)
-                        DraftPages.Add(page, _pageManager.GetPage((int)page.DraftId));
+            if (User?.Identity?.IsAuthenticated != true)
+                return Actions.RedirectToLoginPage($"/manage/{id}");
+            
+            UserCourse = _pageManager.GetCourse(id);
+            if (UserCourse == null)
+                return NotFound();
+            if (!_pageManager.UserCanEdit(User.Identity.Name, id))
+                return Forbid();
 
-                Password = UserCourse.Password;
+            UserPages = _pageManager.GetAllPages(id).ToList();
+            DraftPages = new Dictionary<UserPage, UserPage>();
+            foreach (var page in UserPages)
+                if (page.DraftId != null)
+                    DraftPages.Add(page, _pageManager.GetPage((int)page.DraftId, true));
 
-                ViewData["Title"] = "管理文档";
-                return Page();
-            }
+            Password = UserCourse.Password;
 
-            return NotFound();
+            ViewData["Title"] = "管理文档";
+            return Page();
         }
 
-        private void PublishPage(UserPage page, DateTime timeStamp)
+        private void PublishPage(UserPage page)
         {
             if (page.DraftId != null)
             {
-                var draft = _pageManager.GetPage((int)page.DraftId);
-
-                _pageManager.Update(page);
+                var draft = _pageManager.GetPage((int)page.DraftId, true);
                 draft.CopyTo(page);
-                page.DraftId = null;
-                page.LastModifiedDate = timeStamp;
-
-                _pageManager.Remove(draft);
+                Parser.ToHtml(draft.Content, page, ParserOptions.Default, out var data);
+                _pageManager.PublishPage(page, data);
             }
             else if (!page.IsPublic)
             {
-                _pageManager.Update(page);
-                page.IsPublic = true;
-                page.CreationDate = timeStamp;
-                page.LastModifiedDate = timeStamp;
+                // first publishing
+                Parser.ToHtml(page.Content, page, ParserOptions.Default, out var data);
+                _pageManager.PublishPage(page, data);
             }
         }
 
-        public IActionResult OnPost(int id)
+        public IActionResult OnPost(int id = -1)
         {
-            if (User?.Identity.IsAuthenticated != true) return Forbid();
+            if (id == -1) return NotFound();
+            if (User?.Identity?.IsAuthenticated != true) return Unauthorized();
             var form = Request.Form;
             if (form == null) return BadRequest();
             string action = form["Action"];
             if (action == null) return BadRequest();
             if (!int.TryParse(form["PageId"], out int pageId)) return BadRequest();
-            var page = _pageManager.GetPage(pageId);
+            var page = _pageManager.GetPage(pageId, true);
             if (page == null || page.CourseId != id) return BadRequest();
-            var course = _pageManager.GetCourse(id);
-            if (!(User.Identity.Name == course.Creator || _pageManager.UserIsAdmin(User.Identity.Name))) return Forbid();
+            if (!_pageManager.UserCanEdit(User.Identity.Name, id)) return Forbid();
             var pages = _pageManager.GetAllPages(id).ToList();
+            if (!pages.Contains(page)) return BadRequest();
             var now = DateTime.Now;
+            var course = _pageManager.GetCourse(id);
 
             switch (action)
             {
                 case "publish":
-                    PublishPage(page, now);
+                    PublishPage(page);
                     _pageManager.SaveChanges();
                     return LocalRedirect($"~/page/{pageId}");
 
-                case "publish-all":
-                    foreach (var p in pages)
-                        PublishPage(p, now);
-                    _pageManager.SaveChanges();
-                    return LocalRedirect($"~/manage/{id}");
+                //case "publish-all":
+                //    foreach (var p in pages)
+                //        PublishPage(p, course, now);
+                //    _pageManager.SaveChanges();
+                //    return LocalRedirect($"~/manage/{id}");
 
                 case "insert-above":
                 case "insert-below":
@@ -132,6 +129,7 @@ namespace Banana.Pages
                     // create and add the page
                     int index = pages.IndexOf(page),
                         level = page.PageLevel;
+                    if (index == -1) return BadRequest();
 
                     if (action != "insert-above")
                     {
@@ -158,6 +156,7 @@ namespace Banana.Pages
                         CourseId = course.Id,
                         CreationDate = now,
                         Id = newId,
+                        IsDraft = false,
                         IsPublic = false,
                         LastModifiedDate = now,
                         PageLevel = level,

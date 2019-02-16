@@ -4,18 +4,71 @@
     ViewData["Title"] = "首页";
 }
 
-<div class="noselect logo-container">
-    <div class="logo"></div>
+<div class="container">
+    <div class="noselect logo-container">
+        <div class="logo"></div>
 
-    <p>
-        在这里，分享与查阅数学文档。
-    </p>
-</div>
-
-<div class="box not-too-wide center-block">
-    <div class="box-title">
-        全部课程
+        <p>在这里，分享与查阅数学文档。</p>
     </div>
 
-    <partial name="Shared/_CourseListPartial" model="Model.CourseListModel"/>
+    <div class="text-center" style="font-size:3rem;margin-bottom:12rem">
+        @if (User?.Identity?.IsAuthenticated == true)
+        {
+            <a href="/create" class="btn button-yellow button-homepage">创建文档</a>
+            <a href="/user" class="btn button-white button-homepage" style="margin-left:4rem">我的书包</a>
+        }
+        else
+        {
+            <a href="/login" class="btn button-yellow button-homepage">登录</a>
+            <a href="/register" class="btn button-white button-homepage" style="margin-left:4rem">注册</a>
+        }
+    </div>
+</div>
+
+<div class="feature-container-dark">
+    <div class="container text-center">
+        <div class="features-header">Banana Space 是什么？</div>
+    </div>
+</div>
+
+<div class="feature-container">
+    <div class="container">
+        <div class="feature-container-inner">
+            <div class="feature-text">
+                <h2>把 LaTeX 代码转换成漂亮的网页。</h2>
+                <p>在电脑、手机上查看和编辑你的文档，并分享给他人。LaTeX 可以做到的数学公式、定理自动编号、文档内部的链接，在这里都能做到。</p>
+            </div>
+            <div class="feature-image hide-mobile">
+                <img src="~/images/feature-1.png" alt="一个页面的截图" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="feature-container feature-container-light">
+    <div class="container">
+        <div class="feature-container-inner">
+            <div class="feature-image hide-mobile">
+                <img src="~/images/feature-2.gif" alt="编辑器的动态图" />
+            </div>
+            <div class="feature-text">
+                <h2>一个好用的 LaTeX 编辑器。</h2>
+                <p>具有命令自动补全、自动插入环境等功能。例如，输入前两个字母就可以找到命令；输入 <code><span class="cm-command">\begin</span></code> 按下回车，可以自动补全 <code><span class="cm-command">\end</span></code> 。</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="feature-container">
+    <div class="container">
+        <div class="feature-container-inner">
+            <div class="feature-text">
+                <h2>一个不同于 LaTeX 的排版语言。</h2>
+                <p>包含 LaTeX 的大部分常用功能，引进了新的语言特性，例如<a class="pretty-link" href="/page/66185979">命令重载</a>。添加了一些便捷的语法，例如，如果要<a class="pretty-link" href="/page/59450518">加粗文字</a>，除了用 <code><span class="cm-command">\textbf</span>{&nbsp;...&nbsp;}</code> 或 <code>{<span class="cm-command">\bf</span>&nbsp;...&nbsp;}</code> 外，可以直接用 <code><span class="cm-special">__</span>&nbsp;...&nbsp;<span class="cm-special">__</span></code> 做到。</p>
+            </div>
+            <div class="feature-image hide-mobile">
+                <img src="~/images/feature-3.gif" alt="编辑器的动态图" />
+            </div>
+        </div>
+    </div>
 </div>

@@ -29,7 +29,7 @@ namespace Banana.Pages.Shared
 
         public UserPage GetNewestPage(UserCourse course)
         {
-            return _pageManager.GetPage(course.LastUpdatedPageId);
+            return _pageManager.GetPage(course.LastUpdatedPageId, false);
         }
 
         public void OnGet()

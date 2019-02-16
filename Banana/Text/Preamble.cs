@@ -56,7 +56,6 @@ namespace Banana.Text
             "Bmatrix",
             "bmatrix",
             "cases",
-            "CD",
             "eqnarray",
             "eqnarray*",
             //"equation",

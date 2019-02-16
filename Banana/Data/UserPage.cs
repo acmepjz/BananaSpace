@@ -11,6 +11,7 @@ namespace Banana.Data
     {
         public int Id { get; set; }
         public int CourseId { get; set; }
+        public bool IsDraft { get; set; }
         public bool IsPublic { get; set; }
         public string Title { get; set; } = "";
         public string HtmlTitle { get; set; } = "";
@@ -136,6 +137,7 @@ namespace Banana.Data
                 Id = Id,
                 CourseId = CourseId,
                 IsPublic = false,
+                IsDraft = true,
                 CreationDate = CreationDate,
                 LastModifiedDate = DateTime.Now
             };

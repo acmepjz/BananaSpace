@@ -23,10 +23,12 @@ namespace Banana.Pages
             _pageManager = pageManager;
         }
 
-        public IActionResult OnGet(int id)
+        public IActionResult OnGet(int id = -1)
         {
-            UserPage = _pageManager.GetPage(id);
-            if (UserPage == null)
+            if (id == -1) return NotFound();
+
+            UserPage = _pageManager.GetPage(id, false);
+            if (UserPage == null || !UserPage.IsPublic)
                 return NotFound();
 
             PageTitle = UserPage.HtmlTitle;
@@ -35,5 +37,7 @@ namespace Banana.Pages
 
             return Page();
         }
+
+        public IActionResult OnPost() => Actions.Status405();
     }
 }

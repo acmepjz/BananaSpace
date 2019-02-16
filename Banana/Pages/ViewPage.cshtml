@@ -20,10 +20,17 @@
     <div class="sidebar">
         <div class="box hide-mobile">
             <div class="med-padding text-center">
-                <p>发布于 @Model.UserPage.CreationDate.ToString("yyyy-MM-dd")</p>
-                @if (Model.UserPage.LastModifiedDate != Model.UserPage.CreationDate)
+                @if (Model.UserCourse.Creator != null)
                 {
-                    <p>编辑于 @Model.UserPage.LastModifiedDate.ToString("yyyy-MM-dd")</p>
+                    <p class="creator-email overflow-ellipsis" data-email="@Model.UserCourse.CreatorEmail">创建者: @Model.UserCourse.Creator</p>
+                }
+                @if (Model.UserPage.LastModifiedDate == Model.UserPage.CreationDate)
+                {
+                    <p class="overflow-ellipsis">发布于 @Model.UserPage.CreationDate.ToString("yyyy-MM-dd")</p>
+                }
+                else
+                {
+                    <p class="overflow-ellipsis" title="发布于 @Model.UserPage.CreationDate.ToString("yyyy-MM-dd")">编辑于 @Model.UserPage.LastModifiedDate.ToString("yyyy-MM-dd")</p>
                 }
 
                 @if (Model.IsCreatorOrAdmin)
@@ -35,7 +42,7 @@
                 }
                 else
                 {
-                    <div class="flex-row">
+                    <div class="flex-row text-center">
                         <a href="~/page/@Model.UserPage.Id/source" class="btn button-yellow small-margin">查看源码</a>
                         @if (User.Identity.IsAuthenticated)
                         {

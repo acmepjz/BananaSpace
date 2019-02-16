@@ -66,7 +66,7 @@
                 {
                     <a class="link-row-item link-no-underline link-add-page" data-page-id="@_page.Id" data-action="insert-below" href="#">在下方插入</a>
                 }
-                @if (!isMainPage && canAdd)
+                @if (!isMainPage && canAdd && _page.PageLevel <= 2)
                 {
                     <a class="link-row-item link-no-underline link-add-page" data-page-id="@_page.Id" data-action="insert-subpage" href="#">添加子页面</a>
                 }
@@ -82,11 +82,11 @@
 
     <div style="margin-top:20px">
         <button class="btn button-yellow link-add-page" data-page-id="@lastLevelZeroId" data-action="insert-below">添加页面</button>
-        @if (hasUnpublished)
+        @*@if (hasUnpublished)
         {
             <div class="one-em-wide"></div>
             <button class="btn button-yellow link-confirm" data-page-id="@Model.UserCourse.Id" data-action="publish-all" data-title="发布页面" data-message="确认发布全部页面吗？">全部发布</button>
-        }
+        }*@
     </div>
 
     <h2>设置密码</h2>
@@ -100,7 +100,7 @@
                 <div class="flex-can-grow">
                     <input asp-for="Password" class="form-control textbox-code" spellcheck="false" autocomplete="off" maxlength="64" />
                 </div>
-                <input type="submit" value="保存" class="btn button-yellow" style="margin-left:1em" />
+                <input type="submit" value="保存" class="btn button-yellow button-submit" style="margin-left:1em" />
             </div>
         </form>
     </div>
@@ -117,7 +117,7 @@
         <form method="post">
             <input type="hidden" name="Action" />
             <input type="hidden" name="PageId" />
-            <button class="btn button-yellow dialog-button dialog-button-confirm">确定</button>
+            <button class="btn button-yellow dialog-button dialog-button-confirm button-submit">确定</button>
         </form>
         <div class="one-em-wide"></div>
         <button class="btn button-yellow dialog-button">取消</button>
@@ -141,7 +141,7 @@
         <hr />
 
         <div class="dialog-button-row">
-            <button class="btn button-yellow dialog-button dialog-button-confirm">添加</button>
+            <button class="btn button-yellow dialog-button dialog-button-confirm button-submit">添加</button>
             <div class="one-em-wide"></div>
             <a class="btn button-yellow dialog-button" href="#">取消</a>
         </div>
@@ -155,17 +155,9 @@
         <form method="post">
             <input type="hidden" name="Action" />
             <input type="hidden" name="PageId" />
-            <button class="btn button-red dialog-button dialog-button-confirm">删除</button>
+            <button class="btn button-red dialog-button dialog-button-confirm button-submit">删除</button>
         </form>
         <div class="one-em-wide"></div>
         <button class="btn button-yellow dialog-button">取消</button>
     </div>
 </div>
-
-@section Scripts {
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-}
-
-@section Stylesheets {
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-}

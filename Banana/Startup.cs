@@ -29,23 +29,47 @@ namespace Banana
         {
             services.AddSession(configure: s => s.IdleTimeout = TimeSpan.FromMinutes(60));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-
-            services.AddDbContext<UserPageManager>(options => options.UseSqlServer(Configuration.GetConnectionString("BananaContextConnection")));
+            services.ConfigureApplicationCookie(options => {
+                options.Events = new Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationEvents
+                {
+                    OnRedirectToLogin = ctx =>
+                    {
+                        ctx.Response.Redirect("/login");
+                        return Task.CompletedTask;
+                    },
+                    OnRedirectToLogout = ctx =>
+                    {
+                        ctx.Response.Redirect("/logout");
+                        return Task.CompletedTask;
+                    },
+                    // I don't want to use the default Account/AccessDenied.cshtml.
+                    OnRedirectToAccessDenied = ctx =>
+                    {
+                        ctx.Response.Redirect("/error/403");
+                        return Task.CompletedTask;
+                    }
+                };
+            });
+            services.AddDbContext<UserPageManager>(options => options.UseMySql(Configuration.GetConnectionString("BananaContextConnection")));
             services.AddTransient<UserFileManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            // don't move this below UseRewriter(), or it won't work
+            app.UseStatusCodePagesWithReExecute("/error/{0}");
+
             var rewriter = new RewriteOptions()
                 .AddRewrite(@"^create/?$", "NewCourse", true)
+                .AddRewrite(@"^error/(\d{3})/?$", "Error?c=$1", true)
                 .AddRewrite(@"^login/?$", "Identity/Account/Login", true)
                 .AddRewrite(@"^logout/?$", "Identity/Account/Logout", true)
-                .AddRewrite(@"^manage/([0-9]+)/?$", "ManageCourse?id=$1", true)
-                .AddRewrite(@"^page/([0-9]+)/?$", "ViewPage?id=$1", true)
-                .AddRewrite(@"^page/([0-9]+)/edit/?$", "EditPage?id=$1", true)
-                .AddRewrite(@"^page/([0-9]+)/source/?$", "ViewSource?id=$1", true)
-                .AddRewrite(@"^page/([0-9]+)/verify/?$", "Verify?id=$1", true)
+                .AddRewrite(@"^manage/(\d+)/?$", "ManageCourse?id=$1", true)
+                .AddRewrite(@"^page/(\d+)/?$", "ViewPage?id=$1", true)
+                .AddRewrite(@"^page/(\d+)/edit/?$", "EditPage?id=$1", true)
+                .AddRewrite(@"^page/(\d+)/source/?$", "ViewSource?id=$1", true)
+                .AddRewrite(@"^page/(\d+)/verify/?$", "Verify?id=$1", true)
                 .AddRewrite(@"^register/?$", "Identity/Account/Register", true)
                 .AddRewrite(@"^user/?$", "UserProfile", true);
             app.UseRewriter(rewriter);
@@ -56,12 +80,11 @@ namespace Banana
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                app.UseExceptionHandler("/error");
                 app.UseHsts();
             }
             
             app.UseHttpsRedirection();
-            app.UseStatusCodePagesWithReExecute("/Error");
             app.UseStaticFiles();
             app.UseAuthentication();
             app.UseSession();

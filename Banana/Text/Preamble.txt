@@ -55,7 +55,7 @@
 \def\setparsepabove#1{\@@set{par-sep-above}{#1}}
 \def\nopagebreakafter{\@sett{no-page-break}}
 
-\def\section#1{{\setparsepabove{36}\nopagebreakafter\par\size{28}\color{88c010}\lt#1}\par}
+\def\section#1{{\setparsepabove{36}\nopagebreakafter\par\size{28}\color{88c010}#1}\par}
 \def\subsection#1{{\setparsepabove{30}\nopagebreakafter\par\size{24}\color{11bbdd}#1}\par}
 \def\subsubsection#1{{\setparsepabove{24}\nopagebreakafter\par\size{22}\color{1177dd}#1}\par}
 
@@ -156,6 +156,10 @@
 \def\@endenv#1{\@@csname{end#1}}
 \def\@defenv##1##2##3{\@@ea\def\@@csname{##1}##2~\@endenv\@@ne\@@bg##1\@@ne\@@eg{##3}}
 \def\@adefenv##1##2##3{\@@ea\adef\@@csname{##1}##2~\@endenv\@@ne\@@bg##1\@@ne\@@eg{##3}}
+\def\@defaenv##1##2##3{\@@ea\defa\@@csname{##1}##2~\@endenv\@@ne\@@bg##1\@@ne\@@eg{##3}}
+  \let\defenv\@defenv
+  \let\adefenv\@adefenv
+  \let\defaenv\@defaenv
 
 \def\@block#1#2#3{\@@set{block-background-color}{#1}\@@set{block-border-color}{#2}\@@block{#3}}
 

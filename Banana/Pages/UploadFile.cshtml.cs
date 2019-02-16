@@ -24,20 +24,25 @@ namespace Banana.Pages
             _pageManager = pageManager;
         }
 
+        public IActionResult OnGet()
+        {
+            return Actions.Status405();
+        }
+
         public IActionResult OnPost()
         {
-            if (!User.Identity.IsAuthenticated)
-                return Forbid();
+            if (User?.Identity?.IsAuthenticated != true)
+                return Unauthorized();
             var form = Request.Form;
             if (form == null)
                 return BadRequest();
             var pageId = form["PageId"];
             if (!int.TryParse(pageId, out int id))
                 return BadRequest();
-            var page = _pageManager.GetPage(id);
+            var page = _pageManager.GetPage(id, false);
             if (page == null)
                 return BadRequest();
-            if (!_pageManager.UserCanEdit(User.Identity.Name, page))
+            if (!_pageManager.UserCanEdit(User.Identity.Name, page.CourseId))
                 return Forbid();
 
             var action = form["Action"];

@@ -72,11 +72,9 @@ namespace Banana.Text
                         break;
                     case '^':
                         tokens.Add(new Token(null, TokenType.Superscript, pos(_i), pos(i + 1)));
-                        ignoreNextWhitespace = true;
                         break;
                     case '_':
                         tokens.Add(new Token(null, TokenType.Subscript, pos(_i), pos(i + 1)));
-                        ignoreNextWhitespace = true;
                         break;
                     case '&':
                         tokens.Add(new Token(null, TokenType.Tab, pos(_i), pos(i + 1)));
@@ -128,7 +126,15 @@ namespace Banana.Text
                         t = "";
                         while (s[i] == '#')
                             t += s[i++];
-                        t += s[i];
+                        if (char.IsWhiteSpace(s[i]) || SpecialChars.Contains(s[i]))
+                            t += s[i];
+                        else
+                        {
+                            while (!(char.IsWhiteSpace(s[i]) || SpecialChars.Contains(s[i])))
+                                t += s[i++];
+                            i--;
+                            ignoreNextWhitespace = true;
+                        }
                         tokens.Add(new Token(t, TokenType.Argument, pos(_i), pos(i + 1)));
                         break;
                     default:

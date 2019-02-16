@@ -50,21 +50,23 @@ namespace Banana.Pages
         public string PageTitle { get; set; }
         public string PageContent { get; set; }
 
-        public IActionResult OnGet(int id)
+        public IActionResult OnGet(int id = -1)
         {
-            UserPage = _pageManager.GetPage(id);
+            if (id == -1) return NotFound();
+
+            UserPage = _pageManager.GetPage(id, false);
             if (UserPage == null) return NotFound();
 
-            if (User?.Identity.IsAuthenticated != true)
-                return Actions.RedirectToLoginPage();
+            if (User?.Identity?.IsAuthenticated != true)
+                return Actions.RedirectToLoginPage($"/page/{id}/edit");
 
             UserCourse = _pageManager.GetCourse(UserPage.CourseId);
-            if (!_pageManager.UserCanEdit(User.Identity.Name, UserPage))
+            if (!_pageManager.UserCanEdit(User.Identity.Name, UserPage.CourseId))
                 return Forbid();
 
             ViewData["Title"] = "编辑: " + UserPage.Title;
             if (UserPage.DraftId != null)
-                DraftPage = _pageManager.GetPage(UserPage.DraftId ?? 0);
+                DraftPage = _pageManager.GetPage(UserPage.DraftId ?? 0, true);
             AllPagesInCourse = _pageManager.GetAllPages(UserPage.CourseId);
 
             var page = DraftPage ?? UserPage;
@@ -96,27 +98,16 @@ namespace Banana.Pages
             page.HtmlContent = Parser.ToHtml(Input.Content, page, ParserOptions.Default, out data);
         }
 
-        private void UpdateLabels(UserPage page, ExpansionData data)
-        {
-            _pageManager.ClearLabels(page);
-
-            foreach (var bookmark in data.Bookmarks)
-            {
-                string content = Parser.ToHtmlFinal(bookmark.Content, ParserOptions.SingleLine);
-                _pageManager.AddLabel(page, bookmark.Label, content);
-            }
-        }
-
         // form data must contain an 'Action' field.
         //  - 'save':    responds with html in the form  <h1>...</h1><div>...</div>
         //  - 'publish': redirects to ViewPage.cshtml
-        public IActionResult OnPost(int id)
+        public IActionResult OnPost(int id = -1)
         {
-            UserPage = _pageManager.GetPage(id);
+            if (id == -1) return NotFound();
+            UserPage = _pageManager.GetPage(id, false);
             if (UserPage == null) return NotFound();
-            if (User?.Identity.IsAuthenticated != true) return Forbid();
-            UserCourse = _pageManager.GetCourse(UserPage.CourseId);
-            if (!_pageManager.UserCanEdit(User.Identity.Name, UserPage)) return Forbid();
+            if (User?.Identity?.IsAuthenticated != true) return Unauthorized();
+            if (!_pageManager.UserCanEdit(User.Identity.Name, UserPage.CourseId)) return Forbid();
             var form = Request.Form;
             if (form == null) return BadRequest();
             bool publish = false;
@@ -126,40 +117,17 @@ namespace Banana.Pages
             else return BadRequest();
             if (!ModelState.IsValid) return BadRequest();
 
-            if (UserPage.DraftId != null)
-                DraftPage = _pageManager.GetPage(UserPage.DraftId ?? 0);
-
             if (publish) // user clicked 'Publish'
             {
-                var now = DateTime.Now;
-                var course = _pageManager.GetCourse(UserPage.CourseId);
-                _pageManager.Update(UserPage);
                 UpdateContent(UserPage, out var data);
-                UserPage.DraftId = null;
-                UserPage.LastModifiedDate = now;
-
-                if (DraftPage != null)
-                    _pageManager.Remove(DraftPage);
-
-                if (!UserPage.IsPublic) // first publishing
-                {
-                    UserPage.IsPublic = true;
-                    UserPage.CreationDate = UserPage.LastModifiedDate;
-                    _pageManager.Update(course);
-                    course.LastUpdatedDate = now;
-                    course.LastUpdatedPageId = UserPage.Id;
-                }
-
-                if (course.MainPageId == UserPage.Id)
-                    course.Title = UserPage.HtmlTitle;
-
-                UpdateLabels(UserPage, data);
-
+                _pageManager.PublishPage(UserPage, data);
                 _pageManager.SaveChanges();
                 return LocalRedirect($"~/page/{id}");
             }
 
             // if we are here then Action == 'save'
+            if (UserPage.DraftId != null)
+                DraftPage = _pageManager.GetPage(UserPage.DraftId ?? 0, true);
             UserPage page;
             if (UserPage.IsPublic && DraftPage == null)
             {

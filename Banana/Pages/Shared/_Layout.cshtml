@@ -1,6 +1,8 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Banana Space</title>
@@ -8,10 +10,12 @@
     @RenderSection("Stylesheets", required: false)
 
     <environment include="Development">
+        <link rel="stylesheet" href="~/lib/jquery-ui/jquery-ui.css" />
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
         <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     </environment>
     <environment exclude="Development">
+        <link rel="stylesheet" href="~/lib/jquery-ui/jquery-ui.min.css" />
         <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/css/bootstrap.min.css"
               asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
               asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
@@ -20,8 +24,8 @@
 
     <script type="text/x-mathjax-config">
         @* fix 2.7.5 bold-italic mapping issue *@
-        MathJax.Hub.Register.StartupHook("HTML-CSS Jax Ready", function () { var HTMLCSS = MathJax.OutputJax["HTML-CSS"]; HTMLCSS.Augment({FONTDATA: {VARIANT: {'bold-italic': {offsetA: 0x1D468}}}}); });
-        MathJax.Hub.Register.StartupHook("SVG Jax Ready", function () { var SVG = MathJax.OutputJax.SVG; SVG.Augment({FONTDATA: {VARIANT: {'bold-italic': {offsetA: 0x1D468}}}}); });
+        MathJax.Hub.Register.StartupHook("HTML-CSS Jax Ready", function () { var HTMLCSS = MathJax.OutputJax["HTML-CSS"]; HTMLCSS.Augment({ FONTDATA: { VARIANT: { 'bold-italic': { offsetA: 0x1D468 } } } }); });
+        MathJax.Hub.Register.StartupHook("SVG Jax Ready", function () { var SVG = MathJax.OutputJax.SVG; SVG.Augment({ FONTDATA: { VARIANT: { 'bold-italic': { offsetA: 0x1D468 } } } }); });
         MathJax.Hub.Config({
             showProcessingMessages: false,
             tex2jax: {
@@ -47,25 +51,30 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </head>
 <body>
-    @{ bool wideLayout = Context.Request.Path == "/EditPage"; }
+    @{ bool wideLayout = Context.Request.Path == "/EditPage", noContainer = Context.Request.Path == "/Index" || Context.Request.Path == "/"; }
     <nav class="navbar navbar-fixed-top header-navbar">
         <div class="container@(wideLayout ? " container-wide" : "")">
             <partial name="_HeaderPartial" model="null" />
         </div>
     </nav>
 
-    <div class="container@(wideLayout ? " container-wide" : "")">
+    <div class="@(noContainer ? "" : "container")@(wideLayout ? " container-wide" : "")">
         @RenderBody()
     </div>
 
     <footer style="@(wideLayout ? "position:fixed" : "")">
-        <div class="footer"><div class="copyleft">&copy;</div><span>&nbsp;Copyleft @DateTime.Now.Year - Banana Space - All rights reversed.</span></div>
+        <div class="footer text-center">
+            <a href="/about" class="footer-link link-no-underline">
+                <div style="transform:scaleX(-1)">&copy;</div>&nbsp;Copyleft @DateTime.Now.Year - Banana Space - All rights reversed.
+            </a>
+        </div>
     </footer>
 
     <environment include="Development">
         <script src="~/lib/jquery/dist/jquery.js"></script>
         <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
         <script src="~/js/site.js" asp-append-version="true"></script>
+        <script src="~/lib/jquery-ui/jquery-ui.js"></script>
     </environment>
     <environment exclude="Development">
         <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.3.1.min.js"
@@ -81,6 +90,7 @@
                 integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa">
         </script>
         <script src="~/js/site.min.js" asp-append-version="true"></script>
+        <script src="~/lib/jquery-ui/jquery-ui.min.js"></script>
     </environment>
 
     @RenderSection("Scripts", required: false)

@@ -13,6 +13,7 @@ namespace Banana.Text
     {
         // compiles tokens and returns html string
         // labels are used for \ref{} substituting
+        // page can be null (e.g. when compiling a new course name)
         public static string ToHtml(string s, UserPage page, ParserOptions options, out ExpansionData data)
         {
             data = Preamble.GetInitialExpansionData();
@@ -26,7 +27,7 @@ namespace Banana.Text
 
                 // add \@secnum
                 var secNum = new List<Token>();
-                if (!string.IsNullOrWhiteSpace(page.SectionNumber))
+                if (!string.IsNullOrWhiteSpace(page?.SectionNumber))
                 {
                     foreach (char c in page.SectionNumber)
                         secNum.Add(new Token(c.ToString(), TokenType.Text, TextPosition.None, TextPosition.None));

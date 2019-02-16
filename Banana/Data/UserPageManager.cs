@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Banana.Text;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -47,11 +48,14 @@ namespace Banana.Data
                    select course;
         }
 
-        public UserPage GetPage(int id)
+        public UserPage GetPage(int id, bool allowDraft)
         {
-            return (from page in Pages
-                    where page.Id == id
-                    select page).FirstOrDefault();
+            var p = (from page in Pages
+                     where page.Id == id
+                     select page).FirstOrDefault();
+            if (!allowDraft && p?.IsDraft == true)
+                return null;
+            return p;
         }
 
         public IEnumerable<UserPage> GetAllPages(int courseId, Func<UserPage, bool> selector = null)
@@ -106,20 +110,21 @@ namespace Banana.Data
                     select role).Any();
         }
 
-        public bool UserCanEdit(string userName, UserPage page)
+        public bool UserCanEdit(string userName, int courseId)
         {
-            return GetCourse(page.CourseId).Creator == userName || UserIsAdmin(userName);
+            return GetCourse(courseId).Creator == userName || UserIsAdmin(userName);
         }
 
-        public UserCourse NewCourse(string userName)
+        public UserCourse NewCourse(string userName, string userEmail, string htmlTitle)
         {
             int id = NewId();
             var now = DateTime.Now;
             var course = new UserCourse
             {
                 Id = id,
-                Title = "Untitled",
+                Title = htmlTitle,
                 Creator = userName,
+                CreatorEmail = userEmail,
                 MainPageId = id,
                 CreationDate = now,
                 LastUpdatedDate = now,
@@ -151,6 +156,39 @@ namespace Banana.Data
             }
         }
 
+        public void PublishPage(UserPage page, ExpansionData data)
+        {
+            var now = DateTime.Now;
+            var course = GetCourse(page.CourseId);
+            Update(page);
+            page.LastModifiedDate = now;
+
+            var draftPage = GetPage(page.DraftId ?? 0, true);
+            if (draftPage != null)
+                Remove(draftPage);
+            page.DraftId = null;
+
+            if (!page.IsPublic) // first publishing
+            {
+                page.IsPublic = true;
+                page.CreationDate = page.LastModifiedDate;
+                Update(course);
+                course.LastUpdatedDate = now;
+                course.LastUpdatedPageId = page.Id;
+            }
+
+            if (course.MainPageId == page.Id)
+                course.Title = page.HtmlTitle;
+
+            // update labels
+            ClearLabels(page);
+            foreach (var bookmark in data.Bookmarks)
+            {
+                string content = Parser.ToHtmlFinal(bookmark.Content, ParserOptions.SingleLine);
+                AddLabel(page, bookmark.Label, content);
+            }
+        }
+
         public void DeletePage(UserPage page)
         {
             var course = GetCourse(page.CourseId);
@@ -167,7 +205,7 @@ namespace Banana.Data
 
             Remove(page);
             if (page.DraftId != null)
-                Remove(GetPage(page.DraftId ?? -1));
+                Remove(GetPage(page.DraftId ?? -1, true));
             Remove(itemDict[page.Id]);
             _fileManager.DeleteFiles(page.Id);
             foreach (var p in pages)
@@ -200,7 +238,7 @@ namespace Banana.Data
 
         public void DeleteDraftPage(int draftId)
         {
-            Remove(GetPage(draftId));
+            Remove(GetPage(draftId, true));
         }
 
         public void DeleteCourse(int courseId)
@@ -212,7 +250,7 @@ namespace Banana.Data
             {
                 Remove(page);
                 if (page.DraftId != null)
-                    Remove(GetPage(page.DraftId ?? -1));
+                    Remove(GetPage(page.DraftId ?? -1, true));
                 _fileManager.DeleteFiles(page.Id);
             }
 

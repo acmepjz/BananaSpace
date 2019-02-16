@@ -24,8 +24,8 @@ namespace Banana.Pages
 
         public IActionResult OnGet()
         {
-            if (User?.Identity.IsAuthenticated != true)
-                return Actions.RedirectToLoginPage();
+            if (User?.Identity?.IsAuthenticated != true)
+                return Actions.RedirectToLoginPage(null);
 
             var userName = User.Identity.Name;
             CourseListPartialModel = new _CourseListPartialModel(_pageManager)
@@ -37,5 +37,7 @@ namespace Banana.Pages
 
             return Page();
         }
+
+        public IActionResult OnPost() => Actions.Status405();
     }
 }

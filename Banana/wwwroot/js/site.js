@@ -13,6 +13,11 @@ $(function () {
         });
     }); 
 
+    // prevent multiple submission of forms
+    $('form').submit(function () {
+        $('.button-submit').attr('disabled', 'disabled');
+    });
+
     // ViewPage.cshtml
     $('#_btn-fav').click(function () {
         var $this = $(this);
@@ -34,9 +39,16 @@ $(function () {
             type: 'POST',
             success: function () {
                 $this.removeAttr('disabled').attr('data-action', action == 'add-fav' ? 'cancel-fav' : 'add-fav')
-                .text(action == 'add-fav' ? '取消收藏' : '收藏页面');
+                .text(action == 'add-fav' ? '取消收藏' : '收藏文档');
             }
         });
+    });
+
+    $('.creator-email').tooltip({
+        items: '.creator-email',
+        content: function () {
+            return '创建者邮箱: <code class="noselect">' + $('<div/>').text($(this).attr('data-email')).html().replace('@', '<span class="span-at"></span>') + '</code>';
+        }
     });
 
     // ManageCourse.cshtml
@@ -141,7 +153,7 @@ $(function () {
             var i = selections.length;
             while (i--) {
                 var sel = selections[i];
-                if (selDirection(sel)) {
+                if (selDirection(sel) == -1) {
                     cm.replaceRange('\r\n\\end{}', sel.anchor, null, '+move');
                     cm.replaceRange('\\begin{}\r\n', sel.head, null, '+move');
                 } else {
@@ -242,6 +254,10 @@ $(function () {
             });
         })
         $('.editor-publish-button').click(function () {
+            var $this = $(this);
+            if ($this.attr('disabled')) return;
+            $this.attr('disabled', 'disabled');
+            $('.editor-save-button').attr('disabled', 'disabled');
             prepareForSaving();
             $form.append($('<input name="Action" type="hidden" value="publish">')).submit();
         })

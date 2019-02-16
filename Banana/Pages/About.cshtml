@@ -1,9 +1,17 @@
 ﻿@page
 @model AboutModel
 @{
-    ViewData["Title"] = "About";
+    ViewData["Title"] = "关于";
 }
-<h2>@ViewData["Title"]</h2>
-<h3>@Model.Message</h3>
 
-<p>Use this area to provide additional information.</p>
+<div class="box center-block med-padding not-too-wide">
+    <h1 class="box-h1">关于</h1>
+
+    <div class="user-page-content">
+        <p>Banana Space 版本 1.0.0 。</p>
+        <p>网站目前处于测试阶段，可能尚不稳定。如果需要反馈问题，或者希望加入网站开发，请联系网站作者。他的邮箱是 <code class="noselect">bcj17<span class="span-at"></span>mails.tsinghua.edu.cn</code> 。</p>
+        <p>本站搭建于开源的 ASP.NET Core 框架上。代码编辑器是用 <a class="external-link" href="https://codemirror.net/">CodeMirror</a> 实现的。</p>
+        <p>如需转载本站内容，请联系页面作者取得同意。</p>
+        @* 赞助信息 (if any) *@
+    </div>
+</div>

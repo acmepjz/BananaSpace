@@ -17,7 +17,7 @@ namespace Banana.Areas.Identity
         {
             builder.ConfigureServices((context, services) => {
                 services.AddDbContext<BananaContext>(options =>
-                    options.UseSqlServer(
+                    options.UseMySql(
                         context.Configuration.GetConnectionString("BananaContextConnection")));
 
                 services.AddDefaultIdentity<BananaUser>(options =>

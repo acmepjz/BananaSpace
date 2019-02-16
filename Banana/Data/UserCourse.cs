@@ -10,6 +10,7 @@ namespace Banana.Data
     {
         public int Id { get; set; }
         public string Creator { get; set; }
+        public string CreatorEmail { get; set; }
         public string Title { get; set; }
         public int MainPageId { get; set; }
         public DateTime CreationDate { get; set; }
