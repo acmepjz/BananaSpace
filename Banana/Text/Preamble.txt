@@ -241,7 +241,11 @@
     \begin{@proof}{###2}#1\end{@proof}%
   }%
 }
-\newproof{proof}{Proof}
+\def\proofname{Proof}
+\newproof{proof}{\proofname}
+\@textdef\@adefenv{proof}{[#1~]#2}{%
+  \begin{@proof}{#1}#2\end{@proof}%
+}
 
 \style{normal}
 
